@@ -1,0 +1,16 @@
+#
+# Unicode lowercase and uppercase letters for Czech language
+#
+##############################################################
+
+# Basic latin (lowercase)
+U+0061
+U+0062
+U+0063
+
+# Czech special letters (uppercase)
+#U+00C1 # UTF-8: C3 81 	
+#U+010C # UTF-8: C4 8C
+#U+A901 # UTF-8: EA A4 81
+#U+1F63C # UTF-8: F0 9F 98 BC
+

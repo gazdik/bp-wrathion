@@ -1,0 +1,16 @@
+# Czech special letters (lowercase)
+U+00E1
+U+010D
+U+010F
+U+00E9
+U+011B
+U+00ED
+U+0148
+U+00F3
+U+0159
+U+0161
+U+0165
+U+00FA
+U+016F
+U+00FD
+U+017E

@@ -1,0 +1,3 @@
+./clearstates.sh
+./renewkernels.sh
+
