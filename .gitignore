@@ -1,2 +1,9 @@
 *~
-doc/
+bin/kernels
+bin/wrathion*
+*.cmake
+**/CMakeFiles
+**/Makefile
+**/CMakeCache.txt
+
+
