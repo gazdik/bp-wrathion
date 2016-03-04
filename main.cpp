@@ -42,6 +42,7 @@
 #include <csignal>
 #include <ctime>
 #include "UnicodeParser.h"
+#include "MarkovPassGen.h"
 
 #ifdef WRATHION_MPI
 #include <mpi.h>
@@ -69,13 +70,19 @@ const string help = "wrathion [OPTIONS]\n"
 "    -u (alternative of --chars) - file with unicode characters in hex form\n"
 "    -m - maximum length of password (default: 10)\n"
 "    --dict=file, -r - dictionary for dictinary attack\n"
+
 #ifdef WRATHION_MPI
 "    --mpi - run in MPI mode\n"
 #endif
 "    --threads=NUMTHREADS, -t - number of threads for CPU Cracking\n"
-"    -v - verbose mode (more information is displayed)\n";
+"    -v - verbose mode (more information is displayed)\n"
+"\nMarkov attack\n"
+"    --stat=file - stat file for Markov attack\n"
+"    --threshold=value - number of characters per position (default 5)\n"
+"    --min=value - minimal length of password (default 1)\n"
+"    --max=value - maximal length of password (default 64)\n";
 
-struct opts{
+struct opts : MarkovPassGenOptions {
     opts():
         help(false),
         show_modules(false),
@@ -146,10 +153,27 @@ int main(int argc, char** argv) {
 #ifdef WRATHION_MPI       
                {"mpi", no_argument, 0, 'z'},
 #endif
+							 // Markov attack
+							 {"stat", required_argument, 0, 1},
+							 {"threshold", required_argument, 0, 2},
+							 {"min", required_argument, 0, 3},
+							 {"max", required_argument, 0, 4},
                {0, 0, 0, 0}
              };
     while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:", long_options,&opt_index)) != -1){
         switch(opt){
+        	  case 1:
+        	  	o.stat_file = optarg;
+        	  	break;
+        	  case 2:
+        	  	o.threshold = atoi(optarg);
+        	  	break;
+        	  case 3:
+        	  	o.min_length = atoi(optarg);
+        	  	break;
+        	  case 4:
+        	  	o.max_length = atoi(optarg);
+        	  	break;
             case 'h':
                 o.help = true; break;
             case 'f':
@@ -293,6 +317,8 @@ int main(int argc, char** argv) {
             passgen = new UnicodePassGen(o.unicodeParser.getCharsPtr(), chars_count, o.max_pass_len*UTF8_CHAR_MAXSIZE, o.max_pass_len);
         } else if (!o.dict.empty()){
             passgen = new DictionaryPassGen(o.dict);
+        } else if (not o.stat_file.empty()) {
+        	passgen = new MarkovPassGen(o);
         } else {
             passgen = new ThreadedBrutePassGen(o.chars, o.max_pass_len);
         }

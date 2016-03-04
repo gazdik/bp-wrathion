@@ -37,6 +37,7 @@ enum PassGenID{
     PASSGEN_ID_DICTIONARY = 1,
     PASSGEN_ID_BRUTE = 2,
     PASSGEN_ID_THREADED_BRUTE = 3,
+    PASSGEN_ID_MARKOV = 4,
 };
 
 /**
