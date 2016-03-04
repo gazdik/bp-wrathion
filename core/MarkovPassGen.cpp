@@ -44,9 +44,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options) :
 
 	readStat(options.stat_file);
 
-	if (verbose)
-		printMarkovTable();
-
+	printMarkovTable();
 }
 
 MarkovPassGen::~MarkovPassGen()
@@ -189,7 +187,7 @@ void MarkovPassGen::printMarkovTable()
 			continue;
 
 		cout << "Current state: " << static_cast<char>(i) << "\n"
-				<< "\tNext states: ";
+				<< "    Next states: ";
 
 		for (unsigned j = 0; j < _threshold; j++)
 		{
