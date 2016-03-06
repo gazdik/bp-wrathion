@@ -119,6 +119,7 @@ void CrackerRunner::start(){
             cracker->sharedDataInit();
         }
         if(passgen->isFactory()){
+        		passgen->setStep(this->threads);
             cracker->setPassGen(passgen->createGenerator());
         }else{
             cracker->setPassGen(passgen);

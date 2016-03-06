@@ -27,45 +27,66 @@
 
 using namespace std;
 
-MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options) :
-		_threshold { options.threshold }, _min_length { options.min_length }, _max_length {
-				options.max_length }
+unsigned MarkovPassGen::_threshold;
+uint8_t * MarkovPassGen::_markov_table_buffer;
+uint8_t * MarkovPassGen::_markov_table[CHARSET_SIZE];
+unsigned MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
+unsigned MarkovPassGen::_min_length;
+unsigned MarkovPassGen::_max_length;
+unsigned MarkovPassGen::_step;
+
+MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options)
 {
+	_threshold = options.threshold;
+	_min_length = options.min_length;
+	_max_length = options.max_length;
+
 	// calc length permutations
 	_length_permut[0] = 0;
 	for (unsigned i = 1; i <= MAX_PASS_LENGTH; i++)
 	{
-		_length_permut[i] = _length_permut[i - 1]
-				+ calcPermutations(_threshold, i);
+		_length_permut[i] = _length_permut[i - 1] + numOfPermutations(_threshold, i);
 	}
 
-	_curr_length = _min_length;
-	_curr_index = _length_permut[_min_length - 1];
+	_next_length = _min_length;
+	_next_index = _length_permut[_min_length - 1];
 
 	readStat(options.stat_file);
 
 	printMarkovTable();
 }
 
+MarkovPassGen::MarkovPassGen(const MarkovPassGen& o) :
+		PassGen { o }, _next_length { o._next_length }, _next_index { o._next_index }
+{
+}
+
 MarkovPassGen::~MarkovPassGen()
 {
-	delete[] _markov_table_buffer;
+	if (not _generators.empty())
+	{
+		delete[] _markov_table_buffer;
+
+		for (auto i : _generators)
+			delete i;
+	}
 }
 
 bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
 {
-	char tmp_buffer[MAX_PASS_LENGTH + 1];
-
 	if (_exhausted)
+	{
+		*length = 0;
 		return false;
+	}
 
 	unsigned partial_index;
-	unsigned next_index = _curr_index - _length_permut[_curr_length - 1];
-	uint8_t last_char = 0;
-	*length = _curr_length;
+	unsigned next_index = _next_index - _length_permut[_next_length - 1];
+	char last_char = 0;
+	*length = _next_length;
 
-	// get current password
-	for (unsigned i = 0; i < _curr_length; i++)
+	// Get current password
+	for (unsigned i = 0; i < _next_length; i++)
 	{
 		partial_index = next_index % _threshold;
 		next_index = next_index / _threshold;
@@ -74,13 +95,13 @@ bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
 		buffer[i] = last_char;
 	}
 
-	// Increment index and perhaps length
-	_curr_index++;
-	if (_curr_index >= _length_permut[_curr_length])
+  // Increment index and perhaps length
+	_next_index += _step;
+	if (_next_index >= _length_permut[_next_length])
 	{
-		_curr_length++;
+		_next_length++;
 
-		if (_curr_length > _max_length)
+		if (_next_length > _max_length)
 			_exhausted = true;
 	}
 
@@ -89,7 +110,8 @@ bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
 
 uint8_t MarkovPassGen::maxPassLen()
 {
-	return _max_length;
+	// TODO why +1 ???
+	return (_max_length + 1);
 }
 
 void MarkovPassGen::saveState(std::string filename)
@@ -179,15 +201,37 @@ void MarkovPassGen::readStat(std::string& stat_file)
 	delete[] markov_sort_table_buffer;
 }
 
+bool MarkovPassGen::isFactory()
+{
+	return (true);
+}
+
+PassGen* MarkovPassGen::createGenerator()
+{
+	MarkovPassGen *new_generator = new MarkovPassGen { *this };
+	_generators.push_back(new_generator);
+
+	// Increment starting index for generator
+	_next_index++;
+
+	return (new_generator);
+}
+
+void MarkovPassGen::setStep(unsigned step)
+{
+	_step = step;
+}
+
 void MarkovPassGen::printMarkovTable()
 {
+	cout <<	"===============================\n";
+
 	for (unsigned i = 0; i < CHARSET_SIZE; i++)
 	{
 		if (not (isValidChar(static_cast<uint8_t>(i)) || i == 0))
 			continue;
 
-		cout << "Current state: " << static_cast<char>(i) << "\n"
-				<< "    Next states: ";
+		cout << "  " << static_cast<char>(i) << " | ";
 
 		for (unsigned j = 0; j < _threshold; j++)
 		{
@@ -196,6 +240,8 @@ void MarkovPassGen::printMarkovTable()
 
 		cout << "\n";
 	}
+
+	cout <<	"===============================\n";
 }
 
 bool isValidChar(uint8_t value)
@@ -227,7 +273,7 @@ void MarkovPassGen::findStat(std::ifstream& stat_file)
 	throw runtime_error("Stat file doesn't contain statistics for Markov model");
 }
 
-unsigned MarkovPassGen::calcPermutations(const unsigned & threshold,
+unsigned MarkovPassGen::numOfPermutations(const unsigned & threshold,
 		const unsigned & length)
 {
 	unsigned result = 1;
@@ -252,9 +298,3 @@ int markovElementCompare(const void *p1, const void *p2)
 
 	return (e2->probability - e1->probability);
 }
-
-//void MarkovPassGen::calc_permutations(mpz_class& result,
-//		const mpz_class& threshold, const unsigned long int& length)
-//{
-//	mpz_pow_ui(result.get_mpz_t(), threshold.get_mpz_t(), length);
-//}

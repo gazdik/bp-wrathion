@@ -35,7 +35,6 @@
 #include <limits>
 #include <stdexcept>
 
-
 const unsigned MIN_PASS_LENGTH = 1;
 const unsigned MAX_PASS_LENGTH = 64;
 const unsigned DEFAULT_THRESHOLD = 5;
@@ -59,8 +58,15 @@ struct MarkovSortTableElement
 class MarkovPassGen : public PassGen
 {
 public:
+
+	/**
+	 * Construct MarkovPassGen factory
+	 * @param options
+	 */
 	MarkovPassGen(MarkovPassGenOptions & options);
+
 	virtual ~MarkovPassGen();
+
 	/**
 	 * Get next password
 	 * @param buffer pointer to char array where to put password
@@ -87,7 +93,46 @@ public:
 	 */
 	virtual void loadState(std::string filename);
 
+	/**
+	 * Return true if this object is only factory
+	 * for password generator and not generator itself
+	 * @return
+	 */
+	virtual bool isFactory();
+
+	/**
+	 * Create new generator
+	 * @return
+	 */
+	virtual PassGen* createGenerator();
+
+	/**
+	 * Set step for generators (to ensure exclusivity of passwords)
+	 * @param step
+	 */
+	virtual void setStep(unsigned step);
+
 protected:
+
+	/**
+	 * Construct generator object based on factory object
+	 * @param o factory object
+	 */
+	MarkovPassGen(const MarkovPassGen & o);
+
+	/**
+	 * Calc number of permutations for given length and threshold
+	 * @param threshold number of char per position
+	 * @param length length of password
+	 * @return number of permutations
+	 */
+	static unsigned numOfPermutations(const unsigned &threshold,
+			const unsigned & length);
+
+	/**
+	 * Print Markov table
+	 */
+	void printMarkovTable();
 
 	/**
 	 * Read statistics for Markov generator from file
@@ -105,42 +150,64 @@ protected:
 	/**
 	 * Number of characters per position
 	 */
-	unsigned _threshold;
+	static unsigned _threshold;
 
-	uint8_t *_markov_table_buffer;
-	uint8_t *_markov_table[CHARSET_SIZE];
+	/**
+	 * Markov table buffer
+	 */
+	static uint8_t *_markov_table_buffer;
+
+	/**
+	 * 2D Markov table
+	 */
+	static uint8_t *_markov_table[CHARSET_SIZE];
 
 	/**
 	 * Precomputed permutations for every length
 	 */
-	unsigned _length_permut[MAX_PASS_LENGTH + 1];
+	static unsigned _length_permut[MAX_PASS_LENGTH + 1];
 
-	unsigned _min_length;
-	unsigned _max_length;
-	unsigned _curr_length;
-	unsigned _curr_index;
+	/**
+	 * Minimal password length
+	 */
+	static unsigned _min_length;
+
+	/**
+	 * Maximal password length
+	 */
+	static unsigned _max_length;
+
+	/**
+	 * Length of next password
+	 */
+	unsigned _next_length;
+
+	/**
+	 * Index of next password
+	 */
+	unsigned _next_index;
+
+	/**
+	 * Indication of end
+	 */
 	bool _exhausted = false;
+
+	/**
+	 * Generator step (ensure exclusivity of passwords)
+	 */
+	static unsigned _step;
+
+	/**
+	 * Instances of generator
+	 */
+	std::vector<MarkovPassGen *> _generators;
 
 	const unsigned _STAT_TYPE = 1;
 
-	/**
-	 * Calc number of permutations for given length and threshold
-	 * @param threshold number of char per position
-	 * @param length length of password
-	 * @return number of permutations
-	 */
-	static unsigned calcPermutations(const unsigned &threshold,
-			const unsigned & length);
-
-	// TODO
-//	static void calc_permutations(mpz_class & result, const mpz_class &threshold,
-//			const unsigned long int & length);
-
-	void printMarkovTable();
 };
 
 /**
- * Compare two elements in markov_sort_table
+ * Compare two elements in Markov sort table
  * @param p1
  * @param p2
  * @return 0 if elements are equal,
@@ -149,12 +216,11 @@ protected:
  */
 int markovElementCompare(const void *p1, const void *p2);
 
-	/**
-	 * Test, if the character can be used in password
-	 * @param value 8bit character
-	 * @return true if it's valid character
-	 */
-	static bool isValidChar(uint8_t value);
-
+/**
+ * Test if the character can be used in password
+ * @param value 8bit character
+ * @return
+ */
+static bool isValidChar(uint8_t value);
 
 #endif /* INCLUDE_MARKOVPASSGEN_H_ */

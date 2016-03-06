@@ -54,6 +54,8 @@ public:
     };
     
     PassGen();
+    PassGen(const PassGen & o);
+
     virtual ~PassGen();
     /**
      * Get next password. 
@@ -106,6 +108,11 @@ public:
      */
     virtual PassGen* createGenerator();
     
+    /**
+     * Set step for generators if this is factory
+     */
+    virtual void setStep(unsigned step);
+
     /**
      * Save current state of generatro
      * @param filename filename where to save state

@@ -36,6 +36,13 @@ PassGen::PassGen():gpu_mode(false) {
     verbose = false;
 }
 
+PassGen::PassGen(const PassGen& o) :
+		gws { o.gws }, gpu_mode { o.gpu_mode },
+		verbose { o.verbose }
+{
+		passBuffer = new char[256];
+}
+
 PassGen::~PassGen() {
     delete[] passBuffer;
 }
@@ -517,3 +524,8 @@ void ThreadedBrutePassGen::saveState(std::string filename) {
 pthread_mutex_t ThreadedBrutePassGen::mutex;
 pthread_mutexattr_t ThreadedBrutePassGen::mutexattr;
 uint64_t ThreadedBrutePassGen::countersMax;
+
+void PassGen::setStep(unsigned step)
+{
+}
+
