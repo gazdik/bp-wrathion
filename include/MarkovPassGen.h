@@ -34,6 +34,7 @@
 #include <fstream>
 #include <limits>
 #include <stdexcept>
+#include <mutex>
 
 const unsigned MIN_PASS_LENGTH = 1;
 const unsigned MAX_PASS_LENGTH = 64;
@@ -147,6 +148,8 @@ protected:
 	 */
 	void findStat(std::ifstream& stat_file);
 
+private:
+
 	/**
 	 * Number of characters per position
 	 */
@@ -201,6 +204,8 @@ protected:
 	 * Instances of generator
 	 */
 	std::vector<MarkovPassGen *> _generators;
+
+	static std::mutex _mutex;
 
 	const unsigned _STAT_TYPE = 1;
 

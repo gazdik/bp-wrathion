@@ -34,6 +34,7 @@ unsigned MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
 unsigned MarkovPassGen::_min_length;
 unsigned MarkovPassGen::_max_length;
 unsigned MarkovPassGen::_step;
+std::mutex MarkovPassGen::_mutex;
 
 MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options)
 {
@@ -57,7 +58,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options)
 }
 
 MarkovPassGen::MarkovPassGen(const MarkovPassGen& o) :
-		PassGen { o }, _next_length { o._next_length }, _next_index { o._next_index }
+		PassGen (o), _next_length { o._next_length }, _next_index { o._next_index }
 {
 }
 
@@ -208,11 +209,15 @@ bool MarkovPassGen::isFactory()
 
 PassGen* MarkovPassGen::createGenerator()
 {
+	_mutex.lock();
+
 	MarkovPassGen *new_generator = new MarkovPassGen { *this };
 	_generators.push_back(new_generator);
 
-	// Increment starting index for generator
+	// Increment starting index for next generator
 	_next_index++;
+
+	_mutex.unlock();
 
 	return (new_generator);
 }
