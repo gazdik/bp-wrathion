@@ -23,6 +23,11 @@
 
 #include "MarkovPassGen.h"
 
+#include <arpa/inet.h>		// ntohl, ntohs
+#include <cstdlib>				// atoi, qsort
+
+#include <limits>
+#include <stdexcept>
 #include <iostream>
 
 using namespace std;
@@ -36,17 +41,19 @@ unsigned MarkovPassGen::_max_length;
 unsigned MarkovPassGen::_step;
 std::mutex MarkovPassGen::_mutex;
 
-MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options)
+
+MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 {
 	_threshold = options.threshold;
 	_min_length = options.min_length;
 	_max_length = options.max_length;
 
-	// calc length permutations
+	// Calc length permutations
 	_length_permut[0] = 0;
 	for (unsigned i = 1; i <= MAX_PASS_LENGTH; i++)
 	{
-		_length_permut[i] = _length_permut[i - 1] + numOfPermutations(_threshold, i);
+		_length_permut[i] = _length_permut[i - 1]
+				+ numOfPermutations(_threshold, i);
 	}
 
 	_next_length = _min_length;
@@ -57,8 +64,8 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions& options)
 	printMarkovTable();
 }
 
-MarkovPassGen::MarkovPassGen(const MarkovPassGen& o) :
-		PassGen (o), _next_length { o._next_length }, _next_index { o._next_index }
+MarkovPassGen::MarkovPassGen(const MarkovPassGen & o) :
+		PassGen(o), _next_length { o._next_length }, _next_index { o._next_index }
 {
 }
 
@@ -73,12 +80,12 @@ MarkovPassGen::~MarkovPassGen()
 	}
 }
 
-bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
+bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 {
 	if (_exhausted)
 	{
 		*length = 0;
-		return false;
+		return (false);
 	}
 
 	unsigned partial_index;
@@ -96,7 +103,7 @@ bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
 		buffer[i] = last_char;
 	}
 
-  // Increment index and perhaps length
+	// Increment index and perhaps length
 	_next_index += _step;
 	if (_next_index >= _length_permut[_next_length])
 	{
@@ -106,7 +113,7 @@ bool MarkovPassGen::getPassword(char* buffer, uint32_t* length)
 			_exhausted = true;
 	}
 
-	return true;
+	return (true);
 }
 
 uint8_t MarkovPassGen::maxPassLen()
@@ -125,7 +132,7 @@ void MarkovPassGen::loadState(std::string filename)
 	// TODO
 }
 
-void MarkovPassGen::readStat(std::string& stat_file)
+void MarkovPassGen::readStat(std::string & stat_file)
 {
 	// Open file with statistics
 	ifstream input { stat_file, ifstream::in | ifstream::binary };
@@ -229,7 +236,7 @@ void MarkovPassGen::setStep(unsigned step)
 
 void MarkovPassGen::printMarkovTable()
 {
-	cout <<	"===============================\n";
+	cout << "===============================\n";
 
 	for (unsigned i = 0; i < CHARSET_SIZE; i++)
 	{
@@ -246,10 +253,10 @@ void MarkovPassGen::printMarkovTable()
 		cout << "\n";
 	}
 
-	cout <<	"===============================\n";
+	cout << "===============================\n";
 }
 
-bool isValidChar(uint8_t value)
+bool MarkovPassGen::isValidChar(uint8_t value)
 {
 	return ((value >= 32 && value <= 126) ? true : false);
 }
@@ -291,7 +298,7 @@ unsigned MarkovPassGen::numOfPermutations(const unsigned & threshold,
 	return (result);
 }
 
-int markovElementCompare(const void *p1, const void *p2)
+int MarkovPassGen::markovElementCompare(const void *p1, const void *p2)
 {
 	const MarkovSortTableElement *e1 =
 			static_cast<const MarkovSortTableElement *>(p1);
