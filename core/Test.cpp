@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		i->join();
 	}
 
-	cout << "Cracked passwords: " << PassGenTest::getNumOfFoundPasswords() << endl;
+	cout << "Cracked passwords: " << PassGenTest::getNumCrackedPasswords() << endl;
 
 	return (0);
 }

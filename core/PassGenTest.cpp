@@ -15,7 +15,7 @@
 
 using namespace std;
 
-unsigned PassGenTest::_cnt_found_passwords = 0;
+unsigned PassGenTest::_cnt_cracked_passwords = 0;
 std::unordered_set<std::string> PassGenTest::_dictionary;
 std::vector<PassGenTest *> PassGenTest::_instances;
 std::mutex PassGenTest::_mutex;
@@ -43,7 +43,7 @@ void PassGenTest::LoadDictionary(std::string& path)
 
 	string password;
 
- 	while (input)
+	while (input)
 	{
 		getline(input, password);
 
@@ -58,9 +58,10 @@ bool PassGenTest::TestPassword(const char* pass, const uint32_t* length)
 
 	string password { _line_buffer };
 
-	if (_dictionary.count(password) != 0) {
+	if (_dictionary.count(password) != 0)
+	{
 		_mutex.lock();
-		_cnt_found_passwords++;
+		_cnt_cracked_passwords++;
 		_mutex.unlock();
 
 		return (true);
@@ -68,9 +69,9 @@ bool PassGenTest::TestPassword(const char* pass, const uint32_t* length)
 	return (false);
 }
 
-unsigned PassGenTest::getNumOfFoundPasswords()
+unsigned PassGenTest::getNumCrackedPasswords()
 {
-	return (_cnt_found_passwords);
+	return (_cnt_cracked_passwords);
 }
 
 PassGenTest::PassGenTest()
