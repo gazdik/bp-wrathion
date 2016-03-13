@@ -41,6 +41,7 @@ const unsigned ETX = 3;
 struct MarkovPassGenOptions
 {
 	std::string stat_file;
+	std::string model = "classic";
 	unsigned threshold = DEFAULT_THRESHOLD;
 	unsigned min_length = MIN_PASS_LENGTH;
 	unsigned max_length = MAX_PASS_LENGTH;
@@ -112,7 +113,8 @@ private:
 		uint16_t probability;
 	};
 
-	const unsigned _STAT_TYPE = 1;
+	const int _CLASSIC_MARKOV = 1;
+	const int _LAYERED_MARKOV = 2;
 	/**
 	 * Number of characters per position
 	 */
@@ -124,7 +126,7 @@ private:
 	/**
 	 * 2D Markov table
 	 */
-	static uint8_t *_markov_table[CHARSET_SIZE];
+	static uint8_t *_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
 	/**
 	 * Precomputed permutations for every length
 	 */
@@ -160,12 +162,14 @@ private:
 	 * and initialize Markov tables
 	 * @param stat_file path to file
 	 */
-	void readStat(std::string & stat_file);
+	void readStat(std::string & stat_file, int stat_type);
 	/**
 	 * Find data with statistics in stat file
-	 * @param stat_file input stream
+	 * @param stat_file Stream with open stat file
+	 * @param stat_type Type of statistics to find
+	 * @return Size of statistics in bytes
 	 */
-	void findStat(std::ifstream& stat_file);
+	unsigned findStat(std::ifstream& stat_file, int stat_type);
 	/**
 	 * Test if the character can be used in password
 	 * @param value 8bit character value

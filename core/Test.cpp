@@ -15,6 +15,7 @@
 #include <getopt.h>
 
 #include <thread>
+#include <mutex>
 #include <iostream>
 
 #include "MarkovPassGen.h"
@@ -37,10 +38,16 @@ const string help = "test [OPTIONS]\n"
 		"    -v, --verbose    verbose mode\n"
 //"    --threads=NUMTHREADS, -t - number of threads for CPU Cracking\n"
 		"\nMarkov attack\n"
+
 		"    --stat=file      stat file for Markov attack\n"
+    "    --model=type - type of Markov model:\n"
+    "           - classic - First-order Markov model (default)\n"
+    "           - layered - Layered Markov model\n"
 		"    --threshold      number of characters per position (default 5)\n"
 		"    --min            minimal length of password (default 1)\n"
 		"    --max=value      maximal length of password (default 64)\n";
+
+mutex output_mutex;
 
 void generate_password(Arguments & args)
 {
@@ -60,8 +67,10 @@ void generate_password(Arguments & args)
 	while (passgen->getPassword(pass_buffer, &length))
 	{
 		if (test->TestPassword(pass_buffer, &length) && args.verbose) {
+			output_mutex.lock();
 			pass_buffer[length] = 0;
-			cout << pass_buffer << endl;
+			cout << pass_buffer << "\n";
+			output_mutex.unlock();
 		}
 	}
 }
@@ -80,6 +89,7 @@ int main(int argc, char *argv[])
 			{"threshold", required_argument, 0, 2},
 			{"min", required_argument, 0, 3},
 			{"max", required_argument, 0, 4},
+			{"model", required_argument, 0, 5},
 	};
 
 	while ((option = getopt_long(argc, argv, "hf:v", long_options, &option_index))
@@ -98,6 +108,9 @@ int main(int argc, char *argv[])
 				break;
 			case 4:
 				args.max_length = atoi(optarg);
+				break;
+			case 5:
+				args.model = optarg;
 				break;
 			case 'h':
 				args.help = true;

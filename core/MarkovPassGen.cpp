@@ -34,13 +34,12 @@ using namespace std;
 
 unsigned MarkovPassGen::_threshold;
 uint8_t * MarkovPassGen::_markov_table_buffer;
-uint8_t * MarkovPassGen::_markov_table[CHARSET_SIZE];
+uint8_t * MarkovPassGen::_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
 unsigned MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
 unsigned MarkovPassGen::_min_length;
 unsigned MarkovPassGen::_max_length;
 unsigned MarkovPassGen::_step;
 std::mutex MarkovPassGen::_mutex;
-
 
 MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 {
@@ -50,7 +49,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 
 	// Calc length permutations
 	_length_permut[0] = 0;
-	for (unsigned i = 1; i <= MAX_PASS_LENGTH; i++)
+	for (int i = 1; i <= MAX_PASS_LENGTH; i++)
 	{
 		_length_permut[i] = _length_permut[i - 1]
 				+ numOfPermutations(_threshold, i);
@@ -59,9 +58,19 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 	_next_length = _min_length;
 	_next_index = _length_permut[_min_length - 1];
 
-	readStat(options.stat_file);
+	// Determine type of markov model to choose statistics
+	int stat_type;
+	if (options.model == "classic")
+		stat_type = _CLASSIC_MARKOV;
+	else if (options.model == "layered")
+		stat_type = _LAYERED_MARKOV;
+	else
+		throw invalid_argument("Invalid argument: Unknown Markov model");
 
-	printMarkovTable();
+	readStat(options.stat_file, stat_type);
+
+	// DEBUG
+//	printMarkovTable();
 }
 
 MarkovPassGen::MarkovPassGen(const MarkovPassGen & o) :
@@ -91,16 +100,24 @@ bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 	unsigned partial_index;
 	unsigned next_index = _next_index - _length_permut[_next_length - 1];
 	char last_char = 0;
+
 	*length = _next_length;
 
-	// Get current password
-	for (unsigned i = 0; i < _next_length; i++)
+	// Get first char of password
+	partial_index = next_index % _threshold;
+	next_index = next_index / _threshold;
+
+	last_char = _markov_table[0][last_char][partial_index];
+	buffer[0] = last_char;
+
+	// Get rest of chars
+	for (int p = 1; p < _next_length; p++)
 	{
 		partial_index = next_index % _threshold;
 		next_index = next_index / _threshold;
 
-		last_char = _markov_table[last_char][partial_index];
-		buffer[i] = last_char;
+		last_char = _markov_table[p - 1][last_char][partial_index];
+		buffer[p] = last_char;
 	}
 
 	// Increment index and perhaps length
@@ -132,32 +149,45 @@ void MarkovPassGen::loadState(std::string filename)
 	// TODO
 }
 
-void MarkovPassGen::readStat(std::string & stat_file)
+void MarkovPassGen::readStat(std::string & stat_file, int stat_type)
 {
 	// Open file with statistics
 	ifstream input { stat_file, ifstream::in | ifstream::binary };
 
 	// Find statistics for this generator
-	findStat(input);
+	unsigned stat_length = findStat(input, stat_type);
 
 	// Create Markov matrix from statistics
-	const unsigned markov_matrix_size = CHARSET_SIZE * CHARSET_SIZE;
+	const unsigned markov_matrix_size = CHARSET_SIZE * CHARSET_SIZE
+			* MAX_PASS_LENGTH;
 	uint16_t *markov_matrix_buffer = new uint16_t[markov_matrix_size];
-	uint16_t *markov_matrix[CHARSET_SIZE];
+	uint16_t *markov_matrix[MAX_PASS_LENGTH][CHARSET_SIZE];
 	auto markov_matrix_ptr = markov_matrix_buffer;
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
-		markov_matrix[i] = markov_matrix_ptr;
-		markov_matrix_ptr += CHARSET_SIZE;
+		for (int j = 0; j < CHARSET_SIZE; j++)
+		{
+			markov_matrix[p][j] = markov_matrix_ptr;
+			markov_matrix_ptr += CHARSET_SIZE;
+		}
 	}
 
 	// Initialize matrix with values from stat file
-	input.read(reinterpret_cast<char *>(markov_matrix_buffer),
-			markov_matrix_size * sizeof(uint16_t));
+	input.read(reinterpret_cast<char *>(markov_matrix_buffer), stat_length);
+
+	// If classic Markov model is set, copy statistics to all positions
+	if (stat_type == _CLASSIC_MARKOV)
+	{
+		for (int p = 1; p < MAX_PASS_LENGTH; p++)
+		{
+			memcpy(markov_matrix[p], markov_matrix[0],
+					CHARSET_SIZE * CHARSET_SIZE * sizeof(uint16_t));
+		}
+	}
 
 	// Convert these values to host byte order
-	for (unsigned i = 0; i < markov_matrix_size; i++)
+	for (int i = 0; i < markov_matrix_size; i++)
 	{
 		markov_matrix_buffer[i] = ntohs(markov_matrix_buffer[i]);
 	}
@@ -165,45 +195,58 @@ void MarkovPassGen::readStat(std::string & stat_file)
 	// Create temporary Markov table, copy values in it and sort them
 	MarkovSortTableElement *markov_sort_table_buffer =
 			new MarkovSortTableElement[markov_matrix_size];
-	MarkovSortTableElement *markov_sort_table[CHARSET_SIZE];
+	MarkovSortTableElement *markov_sort_table[MAX_PASS_LENGTH][CHARSET_SIZE];
 	auto markov_sort_table_ptr = markov_sort_table_buffer;
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
-		markov_sort_table[i] = markov_sort_table_ptr;
-		markov_sort_table_ptr += CHARSET_SIZE;
+		for (int i = 0; i < CHARSET_SIZE; i++)
+		{
+			markov_sort_table[p][i] = markov_sort_table_ptr;
+			markov_sort_table_ptr += CHARSET_SIZE;
+		}
 	}
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
-		for (unsigned j = 0; j < CHARSET_SIZE; j++)
+		for (int i = 0; i < CHARSET_SIZE; i++)
 		{
-			markov_sort_table[i][j].next_state = static_cast<uint8_t>(j);
-			markov_sort_table[i][j].probability = markov_matrix[i][j];
+			for (int j = 0; j < CHARSET_SIZE; j++)
+			{
+				markov_sort_table[p][i][j].next_state = static_cast<uint8_t>(j);
+				markov_sort_table[p][i][j].probability = markov_matrix[p][i][j];
+			}
 		}
 	}
 
 	// Order elements by probability
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
-		qsort(markov_sort_table[i], CHARSET_SIZE, sizeof(MarkovSortTableElement),
-				markovElementCompare);
+		for (int i = 0; i < CHARSET_SIZE; i++)
+		{
+			qsort(markov_sort_table[p][i], CHARSET_SIZE,
+					sizeof(MarkovSortTableElement), markovElementCompare);
+		}
 	}
 
 	// Create final Markov table
-	unsigned markov_table_size = CHARSET_SIZE * _threshold;
+	unsigned markov_table_size = MAX_PASS_LENGTH * CHARSET_SIZE * _threshold;
 	_markov_table_buffer = new uint8_t[markov_table_size];
 	auto markov_table_ptr = _markov_table_buffer;
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
-		_markov_table[i] = markov_table_ptr;
-		markov_table_ptr += _threshold;
+		for (int i = 0; i < CHARSET_SIZE; i++)
+		{
+			_markov_table[p][i] = markov_table_ptr;
+			markov_table_ptr += _threshold;
+		}
 	}
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
-		for (unsigned j = 0; j < _threshold; j++)
-			_markov_table[i][j] = markov_sort_table[i][j].next_state;
+	for (int p = 0; p < MAX_PASS_LENGTH; p++)
+		for (int i = 0; i < CHARSET_SIZE; i++)
+			for (int j = 0; j < _threshold; j++)
+				_markov_table[p][i][j] = markov_sort_table[p][i][j].next_state;
 
 	delete[] markov_matrix_buffer;
 	delete[] markov_sort_table_buffer;
@@ -236,21 +279,25 @@ void MarkovPassGen::setStep(unsigned step)
 
 void MarkovPassGen::printMarkovTable()
 {
-	cout << "===============================\n";
 
-	for (unsigned i = 0; i < CHARSET_SIZE; i++)
+	for (int p = 0; p < _max_length; p++)
 	{
-		if (not (isValidChar(static_cast<uint8_t>(i)) || i == 0))
-			continue;
+		cout << "========== p = " << p << " ==============\n";
 
-		cout << "  " << static_cast<char>(i) << " | ";
-
-		for (unsigned j = 0; j < _threshold; j++)
+		for (int i = 0; i < CHARSET_SIZE; i++)
 		{
-			cout << static_cast<char>(_markov_table[i][j]) << " ";
-		}
+			if (not (isValidChar(static_cast<uint8_t>(i)) || i == 0))
+				continue;
 
-		cout << "\n";
+			cout << "  " << static_cast<char>(i) << " | ";
+
+			for (int j = 0; j < _threshold; j++)
+			{
+				cout << static_cast<char>(_markov_table[p][i][j]) << " ";
+			}
+
+			cout << "\n";
+		}
 	}
 
 	cout << "===============================\n";
@@ -261,7 +308,7 @@ bool MarkovPassGen::isValidChar(uint8_t value)
 	return ((value >= 32 && value <= 126) ? true : false);
 }
 
-void MarkovPassGen::findStat(std::ifstream& stat_file)
+unsigned MarkovPassGen::findStat(std::ifstream& stat_file, int stat_type)
 {
 	// Skip header
 	stat_file.ignore(numeric_limits<streamsize>::max(), ETX);
@@ -276,8 +323,10 @@ void MarkovPassGen::findStat(std::ifstream& stat_file)
 		stat_file.read(reinterpret_cast<char *>(&length), sizeof(length));
 		length = ntohl(length);
 
-		if (type == _STAT_TYPE)
-			return;
+		if (type == stat_type)
+		{
+			return (length);
+		}
 
 		stat_file.ignore(length);
 	}
@@ -290,7 +339,7 @@ unsigned MarkovPassGen::numOfPermutations(const unsigned & threshold,
 {
 	unsigned result = 1;
 
-	for (unsigned i = 0; i < length; i++)
+	for (int i = 0; i < length; i++)
 	{
 		result *= threshold;
 	}
