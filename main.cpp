@@ -212,12 +212,12 @@ int main(int argc, char** argv) {
             case 'r':
                 o.dict.assign(optarg); break;
             case 't':
-                o.threads = atoi(optarg);
+                o.threads = atoi(optarg); break;
             case 'v':
-                o.verbose = true;
+                o.verbose = true; break;
 #ifdef WRATHION_MPI  
             case 'z':
-                o.mpi = true;
+                o.mpi = true; break;
 #endif                  
         }
     }
