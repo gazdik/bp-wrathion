@@ -29,30 +29,34 @@
 #include <limits>
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
-unsigned MarkovPassGen::_threshold;
-uint8_t * MarkovPassGen::_markov_table_buffer;
 uint8_t * MarkovPassGen::_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
 unsigned MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
 unsigned MarkovPassGen::_min_length;
 unsigned MarkovPassGen::_max_length;
 unsigned MarkovPassGen::_step;
 std::mutex MarkovPassGen::_mutex;
+unsigned MarkovPassGen::_thresholds[MAX_PASS_LENGTH];
 
 MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 {
-	_threshold = options.threshold;
 	_min_length = options.min_length;
 	_max_length = options.max_length;
+	for (int i = 0; i < MAX_PASS_LENGTH; i++)
+	{
+		_thresholds[i] = options.threshold;
+	}
+
+	applyLimits(options.limits);
 
 	// Calc length permutations
 	_length_permut[0] = 0;
 	for (int i = 1; i <= MAX_PASS_LENGTH; i++)
 	{
-		_length_permut[i] = _length_permut[i - 1]
-				+ numOfPermutations(_threshold, i);
+		_length_permut[i] = _length_permut[i - 1] + numOfPermutations(i);
 	}
 
 	_next_length = _min_length;
@@ -67,7 +71,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 	else
 		throw invalid_argument("Invalid argument: Unknown Markov model");
 
-	readStat(options.stat_file, stat_type);
+	initStat(options.stat_file, stat_type, options.mask);
 
 	// DEBUG
 //	printMarkovTable();
@@ -82,10 +86,12 @@ MarkovPassGen::~MarkovPassGen()
 {
 	if (not _generators.empty())
 	{
-		delete[] _markov_table_buffer;
-
 		for (auto i : _generators)
 			delete i;
+
+		for (int p = 0; p < MAX_PASS_LENGTH; p++)
+			for (int i = 0; i < CHARSET_SIZE; i++)
+				delete[] _markov_table[p][i];
 	}
 }
 
@@ -104,8 +110,8 @@ bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 	*length = _next_length;
 
 	// Get first char of password
-	partial_index = next_index % _threshold;
-	next_index = next_index / _threshold;
+	partial_index = next_index % _thresholds[0];
+	next_index = next_index / _thresholds[0];
 
 	last_char = _markov_table[0][last_char][partial_index];
 	buffer[0] = last_char;
@@ -113,8 +119,8 @@ bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 	// Get rest of chars
 	for (int p = 1; p < _next_length; p++)
 	{
-		partial_index = next_index % _threshold;
-		next_index = next_index / _threshold;
+		partial_index = next_index % _thresholds[p];
+		next_index = next_index / _thresholds[p];
 
 		last_char = _markov_table[p - 1][last_char][partial_index];
 		buffer[p] = last_char;
@@ -149,7 +155,8 @@ void MarkovPassGen::loadState(std::string filename)
 	// TODO
 }
 
-void MarkovPassGen::readStat(std::string & stat_file, int stat_type)
+void MarkovPassGen::initStat(const std::string & stat_file, int stat_type,
+		const std::string & mask)
 {
 	// Open file with statistics
 	ifstream input { stat_file, ifstream::in | ifstream::binary };
@@ -219,6 +226,9 @@ void MarkovPassGen::readStat(std::string & stat_file, int stat_type)
 		}
 	}
 
+	// Apply mask
+	applyMask(markov_sort_table, mask);
+
 	// Order elements by probability
 	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
@@ -230,22 +240,18 @@ void MarkovPassGen::readStat(std::string & stat_file, int stat_type)
 	}
 
 	// Create final Markov table
-	unsigned markov_table_size = MAX_PASS_LENGTH * CHARSET_SIZE * _threshold;
-	_markov_table_buffer = new uint8_t[markov_table_size];
-	auto markov_table_ptr = _markov_table_buffer;
-
 	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 	{
+		unsigned row_size = _thresholds[p];
 		for (int i = 0; i < CHARSET_SIZE; i++)
 		{
-			_markov_table[p][i] = markov_table_ptr;
-			markov_table_ptr += _threshold;
+			_markov_table[p][i] = new uint8_t[row_size];
 		}
 	}
 
 	for (int p = 0; p < MAX_PASS_LENGTH; p++)
 		for (int i = 0; i < CHARSET_SIZE; i++)
-			for (int j = 0; j < _threshold; j++)
+			for (int j = 0; j < _thresholds[p]; j++)
 				_markov_table[p][i][j] = markov_sort_table[p][i][j].next_state;
 
 	delete[] markov_matrix_buffer;
@@ -291,7 +297,7 @@ void MarkovPassGen::printMarkovTable()
 
 			cout << "  " << static_cast<char>(i) << " | ";
 
-			for (int j = 0; j < _threshold; j++)
+			for (int j = 0; j < _thresholds[p]; j++)
 			{
 				cout << static_cast<char>(_markov_table[p][i][j]) << " ";
 			}
@@ -341,10 +347,36 @@ unsigned MarkovPassGen::numOfPermutations(const unsigned & threshold,
 
 	for (int i = 0; i < length; i++)
 	{
-		result *= threshold;
+		result *= _thresholds[i];
 	}
 
 	return (result);
+}
+
+void MarkovPassGen::applyMetachar(MarkovSortTableElement** table,
+		const char& metachar)
+{
+	for (int i = 0; i < CHARSET_SIZE; i++)
+	{
+		for (int j = 0; j < CHARSET_SIZE; j++)
+		{
+			if (satisfyMask(table[i][j].next_state, metachar))
+				table[i][j].probability += UINT16_MAX + 1;
+		}
+	}
+}
+
+void MarkovPassGen::applyChar(MarkovSortTableElement** table,
+		const char& character)
+{
+	for (int i = 0; i < CHARSET_SIZE; i++)
+	{
+		for (int j = 0; j < CHARSET_SIZE; j++)
+		{
+			if (table[i][j].next_state == character)
+				table[i][j].probability += UINT16_MAX + 1;
+		}
+	}
 }
 
 int MarkovPassGen::markovElementCompare(const void *p1, const void *p2)
@@ -358,4 +390,92 @@ int MarkovPassGen::markovElementCompare(const void *p1, const void *p2)
 		return (1);
 
 	return (e2->probability - e1->probability);
+}
+
+void MarkovPassGen::applyMask(
+		MarkovSortTableElement* table[MAX_PASS_LENGTH][CHARSET_SIZE],
+		const std::string& mask)
+{
+	unsigned position = 0;
+
+	for (int i = 0; i < mask.length(); i++)
+	{
+		switch (mask[i])
+		{
+			case '?':
+				i++;
+
+				if (mask[i] == '?')
+					applyChar(table[position], mask[i]);
+				else
+					applyMetachar(table[position], mask[i]);
+
+				position++;
+				break;
+			default:
+				applyChar(table[position], mask[i]);
+
+				position++;
+				break;
+		}
+
+	}
+}
+
+bool MarkovPassGen::satisfyMask(uint8_t character, const char& mask)
+{
+	switch (mask)
+	{
+		case 'u':
+			return ((character >= 65 && character <= 90) ? true : false);
+			break;
+		case 'l':
+			return ((character >= 97 && character <= 122) ? true : false);
+			break;
+		case 'c':
+			return (
+					((character >= 65 && character <= 90)
+							|| (character >= 97 && character <= 122)) ? true : false);
+			break;
+		case 'd':
+			return ((character >= 48 && character <= 57) ? true : false);
+			break;
+		case 's':
+			return (
+					((character >= 32 && character <= 47)
+							|| (character >= 58 && character <= 64)
+							|| (character >= 91 && character <= 96)
+							|| (character >= 123 && character <= 126)) ? true : false);
+			break;
+		case 'A':
+			return (
+					((character >= 65 && character <= 90)
+							|| (character >= 97 && character <= 122)
+							|| (character >= 48 && character <= 57)) ? true : false);
+			break;
+		case 'a':
+			return ((character >= 32 && character <= 126) ? true : false);
+			break;
+		default:
+			return (false);
+			break;
+	}
+}
+
+void MarkovPassGen::applyLimits(const std::string& limits)
+{
+	if (limits.empty())
+		return;
+
+	stringstream ss { limits };
+	string value;
+
+	int position = 0;
+	while (ss.good() && position <= 64)
+	{
+		getline(ss, value, ',');
+		_thresholds[position] = stoul(value);
+
+		position++;
+	}
 }

@@ -83,7 +83,9 @@ const string help = "wrathion [OPTIONS]\n"
 "           - layered - Layered Markov model\n"
 "    --threshold=value - number of characters per position (default 5)\n"
 "    --min=value - minimal length of password (default 1)\n"
-"    --max=value - maximal length of password (default 64)\n";
+"    --max=value - maximal length of password (default 64)\n"
+"    --limits - comma-sepparated threshold values\n"
+"    --mask=mask - mask\n";
 
 struct opts : MarkovPassGenOptions {
     opts():
@@ -162,6 +164,8 @@ int main(int argc, char** argv) {
 							 {"min", required_argument, 0, 3},
 							 {"max", required_argument, 0, 4},
 							 {"model", required_argument, 0, 5},
+							 {"mask", required_argument, 0, 6},
+							 {"limits", required_argument, 0, 7},
                {0, 0, 0, 0}
              };
     while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:", long_options,&opt_index)) != -1){
@@ -180,6 +184,12 @@ int main(int argc, char** argv) {
         	  	break;
         	  case 5:
         	  	o.model = optarg;
+        	  	break;
+        	  case 6:
+        	  	o.mask = optarg;
+        	  	break;
+        	  case 7:
+        	  	o.limits = optarg;
         	  	break;
             case 'h':
                 o.help = true; break;

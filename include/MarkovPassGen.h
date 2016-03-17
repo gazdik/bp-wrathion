@@ -45,6 +45,8 @@ struct MarkovPassGenOptions
 	unsigned threshold = DEFAULT_THRESHOLD;
 	unsigned min_length = MIN_PASS_LENGTH;
 	unsigned max_length = MAX_PASS_LENGTH;
+	std::string mask;
+	std::string limits;
 };
 
 class MarkovPassGen : public PassGen
@@ -110,27 +112,20 @@ private:
 	struct MarkovSortTableElement
 	{
 		uint8_t next_state;
-		uint16_t probability;
+		uint32_t probability;
 	};
 
 	const int _CLASSIC_MARKOV = 1;
 	const int _LAYERED_MARKOV = 2;
+
 	/**
-	 * Number of characters per position
-	 */
-	static unsigned _threshold;
-	/**
-	 * Markov table buffer
-	 */
-	static uint8_t *_markov_table_buffer;
-	/**
-	 * 2D Markov table
+	 * 3D Markov table
 	 */
 	static uint8_t *_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
 	/**
 	 * Precomputed permutations for every length
 	 */
-	static unsigned _length_permut[MAX_PASS_LENGTH + 1];
+	static uint64_t _length_permut[MAX_PASS_LENGTH + 1];
 	/**
 	 * Minimal password length
 	 */
@@ -143,6 +138,11 @@ private:
 	 * Generator step (ensure exclusivity of passwords)
 	 */
 	static unsigned _step;
+	/**
+	 * Number of characters per position
+	 */
+	static unsigned _thresholds[MAX_PASS_LENGTH];
+
 	static std::mutex _mutex;
 
 	/**
@@ -158,11 +158,11 @@ private:
 	 */
 	void printMarkovTable();
 	/**
-	 * Read statistics for Markov generator from file
+	 * Read statistics for Markov generator from file, apply mask on them
 	 * and initialize Markov tables
 	 * @param stat_file path to file
 	 */
-	void readStat(std::string & stat_file, int stat_type);
+	void initStat(const std::string & stat_file, int stat_type, const std::string & mask);
 	/**
 	 * Find data with statistics in stat file
 	 * @param stat_file Stream with open stat file
@@ -170,6 +170,11 @@ private:
 	 * @return Size of statistics in bytes
 	 */
 	unsigned findStat(std::ifstream& stat_file, int stat_type);
+
+	void applyLimits(const std::string & limits);
+	void applyMask(MarkovSortTableElement *table[MAX_PASS_LENGTH][CHARSET_SIZE], const std::string & mask);
+	void applyMetachar(MarkovSortTableElement **table, const char & metachar);
+	void applyChar(MarkovSortTableElement **table, const char & character);
 	/**
 	 * Test if the character can be used in password
 	 * @param value 8bit character value
@@ -185,6 +190,13 @@ private:
 	 * 		>0 otherwise
 	 */
 	static int markovElementCompare(const void *p1, const void *p2);
+	/**
+	 * Test if the character satisfy the mask
+	 * @param character
+	 * @param mask
+	 * @return
+	 */
+	bool satisfyMask(uint8_t character, const char & mask);
 
 	/**
 	 * Length of next password
