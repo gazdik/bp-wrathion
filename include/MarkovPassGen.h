@@ -151,8 +151,7 @@ private:
 	 * @param length Length of password
 	 * @return Number of permutations
 	 */
-	static unsigned numOfPermutations(const unsigned & threshold,
-			const unsigned & length);
+	static uint64_t numOfPermutations(const unsigned & length);
 	/**
 	 * Print Markov table
 	 */
@@ -205,7 +204,7 @@ private:
 	/**
 	 * Index of next password
 	 */
-	unsigned _next_index;
+	uint64_t _next_index;
 	/**
 	 * Indication of end
 	 */

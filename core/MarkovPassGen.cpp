@@ -34,7 +34,7 @@
 using namespace std;
 
 uint8_t * MarkovPassGen::_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
-unsigned MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
+uint64_t MarkovPassGen::_length_permut[MAX_PASS_LENGTH + 1];
 unsigned MarkovPassGen::_min_length;
 unsigned MarkovPassGen::_max_length;
 unsigned MarkovPassGen::_step;
@@ -103,8 +103,8 @@ bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 		return (false);
 	}
 
-	unsigned partial_index;
-	unsigned next_index = _next_index - _length_permut[_next_length - 1];
+	uint64_t partial_index;
+	uint64_t next_index = _next_index - _length_permut[_next_length - 1];
 	char last_char = 0;
 
 	*length = _next_length;
@@ -340,10 +340,9 @@ unsigned MarkovPassGen::findStat(std::ifstream& stat_file, int stat_type)
 	throw runtime_error("Stat file doesn't contain statistics for Markov model");
 }
 
-unsigned MarkovPassGen::numOfPermutations(const unsigned & threshold,
-		const unsigned & length)
+uint64_t MarkovPassGen::numOfPermutations(const unsigned & length)
 {
-	unsigned result = 1;
+	uint64_t result = 1;
 
 	for (int i = 0; i < length; i++)
 	{
