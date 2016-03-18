@@ -200,15 +200,11 @@ private:
 	/**
 	 * Length of next password
 	 */
-	unsigned _next_length;
+	unsigned _length;
 	/**
 	 * Index of next password
 	 */
-	uint64_t _next_index;
-	/**
-	 * Indication of end
-	 */
-	bool _exhausted = false;
+	uint64_t _global_index;
 	/**
 	 * Instances of generator
 	 */

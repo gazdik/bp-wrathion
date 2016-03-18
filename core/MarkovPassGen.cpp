@@ -59,8 +59,8 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 		_length_permut[i] = _length_permut[i - 1] + numOfPermutations(i);
 	}
 
-	_next_length = _min_length;
-	_next_index = _length_permut[_min_length - 1];
+	_length = _min_length;
+	_global_index = _length_permut[_min_length - 1];
 
 	// Determine type of markov model to choose statistics
 	int stat_type;
@@ -78,7 +78,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 }
 
 MarkovPassGen::MarkovPassGen(const MarkovPassGen & o) :
-		PassGen(o), _next_length { o._next_length }, _next_index { o._next_index }
+		PassGen(o), _length { o._length }, _global_index { o._global_index }
 {
 }
 
@@ -97,44 +97,35 @@ MarkovPassGen::~MarkovPassGen()
 
 bool MarkovPassGen::getPassword(char * buffer, uint32_t * length)
 {
-	if (_exhausted)
+	// Increment length according to global index
+	while (_global_index >= _length_permut[_length])
 	{
-		*length = 0;
-		return (false);
+		_length++;
+
+		if (_length > _max_length) {
+			*length = 0;
+			return (false);
+		}
 	}
 
+	// Convert global index to local index
+	uint64_t index = _global_index - _length_permut[_length - 1];
 	uint64_t partial_index;
-	uint64_t next_index = _next_index - _length_permut[_next_length - 1];
 	char last_char = 0;
+	*length = _length;
 
-	*length = _next_length;
-
-	// Get first char of password
-	partial_index = next_index % _thresholds[0];
-	next_index = next_index / _thresholds[0];
-
-	last_char = _markov_table[0][last_char][partial_index];
-	buffer[0] = last_char;
-
-	// Get rest of chars
-	for (int p = 1; p < _next_length; p++)
+	// Create password
+	for (int p = 0; p < _length; p++)
 	{
-		partial_index = next_index % _thresholds[p];
-		next_index = next_index / _thresholds[p];
+		partial_index = index % _thresholds[p];
+		index = index / _thresholds[p];
 
-		last_char = _markov_table[p - 1][last_char][partial_index];
+		last_char = _markov_table[p][last_char][partial_index];
 		buffer[p] = last_char;
 	}
 
-	// Increment index and perhaps length
-	_next_index += _step;
-	if (_next_index >= _length_permut[_next_length])
-	{
-		_next_length++;
-
-		if (_next_length > _max_length)
-			_exhausted = true;
-	}
+	// Increment index
+	_global_index += _step;
 
 	return (true);
 }
@@ -271,7 +262,7 @@ PassGen* MarkovPassGen::createGenerator()
 	_generators.push_back(new_generator);
 
 	// Increment starting index for next generator
-	_next_index++;
+	_global_index++;
 
 	_mutex.unlock();
 
