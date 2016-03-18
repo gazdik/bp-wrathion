@@ -28,26 +28,28 @@ struct Arguments : public MarkovPassGenOptions
 	std::string dictonary;
 	bool help = false;
 	bool verbose = false;
+	unsigned threads = 0;
 
 	PassGen * passgen;
 };
 
 const string help = "test [OPTIONS]\n"
-		"    -h, --help\t     prints this help\n"
-		"    -f, --file\t     dictionary with passwords to crack\n"
-		"    -v, --verbose    verbose mode\n"
+		"    -h, --help        prints this help\n"
+		"    -f, --file        dictionary with passwords to crack\n"
+		"    -t, --threads     number of threads to use\n"
+		"    -v, --verbose     verbose mode\n"
 //"    --threads=NUMTHREADS, -t - number of threads for CPU Cracking\n"
 		"\nMarkov attack\n"
 
-		"    --stat=file      stat file for Markov attack\n"
-    "    --model=type - type of Markov model:\n"
+		"    --stat=file       stat file for Markov attack\n"
+    "    --model=type      type of Markov model:\n"
     "           - classic - First-order Markov model (default)\n"
     "           - layered - Layered Markov model\n"
-		"    --threshold      number of characters per position (default 5)\n"
-		"    --min            minimal length of password (default 1)\n"
-		"    --max=value      maximal length of password (default 64)\n"
-		"    --limits - comma-sepparated threshold values\n"
-		"    --mask=mask      mask\n";
+		"    --threshold       number of characters per position (default 5)\n"
+		"    --min             minimal length of password (default 1)\n"
+		"    --max=value       maximal length of password (default 64)\n"
+		"    --limits          comma-sepparated threshold values\n"
+		"    --mask=mask       mask\n";
 
 mutex output_mutex;
 
@@ -87,6 +89,7 @@ int main(int argc, char *argv[])
 			{"help", no_argument, 0, 'h'},
 			{"file", required_argument, 0, 'f'},
 			{"verbose", no_argument, 0, 'v'},
+			{"threads", no_argument, 0, 't'},
 			{"stat", required_argument, 0, 1},
 			{"threshold", required_argument, 0, 2},
 			{"min", required_argument, 0, 3},
@@ -97,7 +100,7 @@ int main(int argc, char *argv[])
 			{0,0,0,0}
 	};
 
-	while ((option = getopt_long(argc, argv, "hf:v", long_options, &option_index))
+	while ((option = getopt_long(argc, argv, "hf:vt:", long_options, &option_index))
 			!= -1)
 	{
 		switch (option)
@@ -132,6 +135,9 @@ int main(int argc, char *argv[])
 			case 'v':
 				args.verbose = true;
 				break;
+			case 't':
+				args.threads = atoi(optarg);
+				break;
 			default:
 				return(2);
 				break;
@@ -155,13 +161,15 @@ int main(int argc, char *argv[])
 	}
 
 	// Get number of available processors
-	unsigned num_of_cpu = sysconf(_SC_NPROCESSORS_ONLN);
+	if (args.threads == 0) {
+		args.threads = sysconf(_SC_NPROCESSORS_ONLN);
+	}
 
 	// Create passgen
 	if (not args.stat_file.empty())
 	{
 		args.passgen = new MarkovPassGen { args };
-		args.passgen->setStep(num_of_cpu);
+		args.passgen->setStep(args.threads);
 	}
 
 	// Initialize test
@@ -169,7 +177,7 @@ int main(int argc, char *argv[])
 
 	// Initialize threads
 	vector<thread *> threads;
-	for (int i = 0; i < num_of_cpu; i++)
+	for (int i = 0; i < args.threads; i++)
 	{
 		threads.push_back(new thread ( generate_password, ref(args) ));
 	}
