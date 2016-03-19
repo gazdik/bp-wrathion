@@ -177,9 +177,12 @@ void MarkovPassGen::initStat(const std::string & stat_file, int stat_type,
 	// If classic Markov model is set, copy statistics to all positions
 	if (stat_type == _CLASSIC_MARKOV)
 	{
+		markov_matrix_ptr = markov_matrix_buffer;
 		for (int p = 1; p < MAX_PASS_LENGTH; p++)
 		{
-			memcpy(markov_matrix[p], markov_matrix[0],
+			markov_matrix_ptr += CHARSET_SIZE * CHARSET_SIZE;
+			
+			memcpy(markov_matrix_ptr, markov_matrix_buffer,
 					CHARSET_SIZE * CHARSET_SIZE * sizeof(uint16_t));
 		}
 	}
