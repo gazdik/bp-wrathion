@@ -31,6 +31,7 @@
 #include <string>
 #include <fstream>
 #include <mutex>
+#include <vector>
 
 const unsigned MIN_PASS_LENGTH = 1;
 const unsigned MAX_PASS_LENGTH = 64;

@@ -27,7 +27,6 @@
 #include <string>
 #include <fstream>
 #include <map>
-#include <CL/cl.hpp>
 
 /**
  * ID of password generator saved in state file
@@ -91,7 +90,6 @@ public:
      * @param que
      * @param context
      */
-    virtual void initKernel(cl::Kernel *kernel, cl::CommandQueue *que, cl::Context *context);
     /**
      * Returns maximum password length
      * @return 
@@ -140,112 +138,6 @@ private:
     char* passBuffer;
 };
 
-/**
- * Generator loading passwords from file
- */
-class DictionaryPassGen: public PassGen{
-public:
-    DictionaryPassGen(std::string filename);
-    virtual ~DictionaryPassGen();
-    //bool getPassword(std::string* pass);
-    bool getPassword(char* pass, uint32_t *len);
-    uint8_t maxPassLen();
-    virtual void saveState(std::string filename);
-    virtual void loadState(std::string filename);
-protected:
-    std::ifstream *file;
-    char buffer[128];
-    pthread_mutex_t mutex;
-    pthread_mutexattr_t mutexAttr;
-};
-
-/**
- * Bruteforce password generator. Single-thread code, not thread-safe.
- */
-class BrutePassGen: public PassGen{
-public:
-    BrutePassGen(char *chars, int max_len);
-    virtual ~BrutePassGen();
-    //virtual bool getPassword(std::string* pass);
-    virtual bool getPassword(char* pass, uint32_t *len);
-    uint8_t maxPassLen();
-    virtual void saveState(std::string filename);
-    virtual void loadState(std::string filename);
-protected:
-    char* chars;
-    int maxLen;
-    unsigned char *state;
-    int chars_count;
-    int first_char;
-    char passBuffer[64];
-    bool exhausted;
-};
-
-/**
- * Password generator generating only one specified password. Best for testing puroposes.
- */
-class TestPassGen: public PassGen{
-public:
-    TestPassGen(std::string password);
-    virtual ~TestPassGen();
-    bool getPassword(std::string* pass);
-    bool getPassword(char* pass, uint32_t *len);
-    uint8_t maxPassLen();
-protected:
-    std::string pass;
-    
-};
-
-/**
- * Bruteforce multithreaded generator, completely threadsafe and pretty fast
- */
-class ThreadedBrutePassGen: public BrutePassGen{
-public:
-    ThreadedBrutePassGen(char *chars, int max_len, int childId = -1);
-    virtual ~ThreadedBrutePassGen();
-    //virtual bool getPassword(std::string* pass);
-    virtual bool getPassword(char* pass, uint32_t *len);
-    virtual bool isFactory();
-    virtual void setKernelGWS(uint64_t gws);
-    virtual void initKernel(cl::Kernel *kernel, cl::CommandQueue *que, cl::Context *context);
-    virtual uint64_t getKernelStep();
-    virtual KernelCode* getKernelCode(); 
-    virtual PassGen* createGenerator();
-    virtual void saveState(std::string filename);
-    virtual void loadState(std::string filename);
-protected:
-    virtual void reservePasswords();
-    
-    KernelCode gpuCode;
-    cl::Buffer charsBuffer;
-    cl::Buffer charPosBuffer;
-    cl::Buffer powersBuffer;
-    int childId;
-    int nextChildId;
-    unsigned char *addState;
-    uint64_t passLeft;
-    uint64_t myPosition;
-    uint64_t reservationSize;
-    uint64_t myStartPosition;
-    uint32_t minResSize;
-    static pthread_mutex_t mutex;
-    static pthread_mutexattr_t mutexattr;
-    static uint64_t countersMax;
-    struct timespec speedClock;
-    std::vector<ThreadedBrutePassGen*> children;
-};
-
-/**
- * Multithreaded cluster password generator using OpenMPI
- * @note Experimental 
- */
-class ClusterBrutePassGen: public ThreadedBrutePassGen{
-public:
-    ClusterBrutePassGen(char *chars, int max_len, int childId = -1);
-    virtual ~ClusterBrutePassGen();
-protected:
-    virtual void reservePasswords();
-};
 
 #endif	/* PASSGEN_H */
 

@@ -25,6 +25,7 @@
 
 #include <arpa/inet.h>		// ntohl, ntohs
 #include <cstdlib>				// atoi, qsort
+#include <cstring>
 
 #include <limits>
 #include <stdexcept>
@@ -74,7 +75,7 @@ MarkovPassGen::MarkovPassGen(MarkovPassGenOptions & options)
 	initStat(options.stat_file, stat_type, options.mask);
 
 	// DEBUG
-//	printMarkovTable();
+	printMarkovTable();
 }
 
 MarkovPassGen::MarkovPassGen(const MarkovPassGen & o) :

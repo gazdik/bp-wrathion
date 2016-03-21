@@ -159,46 +159,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>[Targets]/[exe] wrathion</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/Source Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/Source Files/main.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/main.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/Header Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/CMake Rules</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/Resources</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[exe] wrathion/Object Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>[Targets]/[lib] wrathion_core</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -214,9 +174,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/GPUCracker.cpp</name>
+			<name>[Targets]/[lib] wrathion_core/Source Files/PassGen.cpp</name>
 			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/GPUCracker.cpp</location>
+			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/PassGen.cpp</location>
 		</link>
 		<link>
 			<name>[Targets]/[lib] wrathion_core/Source Files/PassGenTest.cpp</name>
@@ -224,59 +184,14 @@
 			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/PassGenTest.cpp</location>
 		</link>
 		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/PassGen.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/PassGen.cpp</location>
-		</link>
-		<link>
 			<name>[Targets]/[lib] wrathion_core/Source Files/Test.cpp</name>
 			<type>1</type>
 			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/Test.cpp</location>
 		</link>
 		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/CrackerRunner.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/CrackerRunner.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/Cracker.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/Cracker.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/FormatPool.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/FormatPool.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/UnicodeParser.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/UnicodeParser.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/UnicodePassGen.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/UnicodePassGen.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/Utils.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/Utils.cpp</location>
-		</link>
-		<link>
 			<name>[Targets]/[lib] wrathion_core/Source Files/MarkovPassGen.cpp</name>
 			<type>1</type>
 			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/MarkovPassGen.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/Module.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/Module.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_core/Source Files/FileFormat.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core/FileFormat.cpp</location>
 		</link>
 		<link>
 			<name>[Targets]/[lib] wrathion_core/Header Files</name>
@@ -295,196 +210,6 @@
 		</link>
 		<link>
 			<name>[Targets]/[lib] wrathion_core/Object Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPModule.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPModule.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPAESCrackerCPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPAESCrackerCPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPPKCracker.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPPKCracker.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPPKCrackerCPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPPKCrackerCPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPAESCrackerGPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPAESCrackerGPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPFormat.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPFormat.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Source Files/ZIPPKCrackerGPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/ZIPPKCrackerGPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Header Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/CMake Rules</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Resources</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_zip/Object Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Source Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Source Files/DOCRC4CrackerGPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC/DOCRC4CrackerGPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Source Files/DOCFormat.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC/DOCFormat.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Source Files/DOCRC4CrackerCPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC/DOCRC4CrackerCPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Source Files/DOCModule.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC/DOCModule.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Header Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/CMake Rules</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Resources</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_doc/Object Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/sha256.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/sha256.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/PDFCracker.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/PDFCracker.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/PDFCrackerGPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/PDFCrackerGPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/PDFFormat.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/PDFFormat.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/PDFCrackerCPU.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/PDFCrackerCPU.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Source Files/PDFModule.cpp</name>
-			<type>1</type>
-			<location>/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/PDFModule.cpp</location>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Header Files</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/CMake Rules</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Resources</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>[Targets]/[lib] wrathion_module_pdf/Object Files</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
