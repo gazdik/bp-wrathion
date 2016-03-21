@@ -264,10 +264,10 @@
 <pathentry kind="mac" name="__GXX_RTTI" path="" value="1"/>
 <pathentry kind="mac" name="__EXCEPTIONS" path="" value="1"/>
 <pathentry kind="mac" name="_GNU_SOURCE" path="" value="1"/>
-<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/include" kind="inc" path="" system="true"/>
-<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/ZIP/include" kind="inc" path="" system="true"/>
-<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/DOC/include" kind="inc" path="" system="true"/>
-<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/PDF/include" kind="inc" path="" system="true"/>
+<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/include" kind="inc" path="" system="true"/>
+<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP/include" kind="inc" path="" system="true"/>
+<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC/include" kind="inc" path="" system="true"/>
+<pathentry include="/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF/include" kind="inc" path="" system="true"/>
 <pathentry include="/usr/lib/gcc/x86_64-linux-gnu/4.8/include" kind="inc" path="" system="true"/>
 <pathentry include="/usr/local/include" kind="inc" path="" system="true"/>
 <pathentry include="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" kind="inc" path="" system="true"/>
@@ -302,14 +302,14 @@
 </target>
 <target name="Build" path="[Targets]/[exe] test" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>test</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[exe] test" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" "/usr/bin/cmake" -P "CMakeFiles/test.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" "/usr/bin/cmake" -P "CMakeFiles/test.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -330,14 +330,14 @@
 </target>
 <target name="Build" path="[Targets]/[exe] wrathion" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>wrathion</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[exe] wrathion" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" "/usr/bin/cmake" -P "CMakeFiles/wrathion.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" "/usr/bin/cmake" -P "CMakeFiles/wrathion.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -414,14 +414,14 @@
 </target>
 <target name="Build" path="[Targets]/[lib] wrathion_core" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>wrathion_core</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[lib] wrathion_core" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/core" "/usr/bin/cmake" -P "CMakeFiles/wrathion_core.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/core" "/usr/bin/cmake" -P "CMakeFiles/wrathion_core.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -743,14 +743,14 @@
 </target>
 <target name="Build" path="[Targets]/[lib] wrathion_module_zip" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>wrathion_module_zip</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[lib] wrathion_module_zip" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/ZIP" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_zip.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/ZIP" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_zip.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -932,14 +932,14 @@
 </target>
 <target name="Build" path="[Targets]/[lib] wrathion_module_doc" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>wrathion_module_doc</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[lib] wrathion_module_doc" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/DOC" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_doc.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/DOC" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_doc.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -1058,14 +1058,14 @@
 </target>
 <target name="Build" path="[Targets]/[lib] wrathion_module_pdf" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/make</buildCommand>
-<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src" -j4</buildArguments>
+<buildArguments>-C "/home/gazdik/Documents/FIT/IBP/workspace/wrathion" -j4</buildArguments>
 <buildTarget>wrathion_module_pdf</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
 </target>
 <target name="Clean" path="[Targets]/[lib] wrathion_module_pdf" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
 <buildCommand>/usr/bin/cmake</buildCommand>
-<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/src/modules/PDF" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_pdf.dir/cmake_clean.cmake"</buildArguments>
+<buildArguments>-E chdir "/home/gazdik/Documents/FIT/IBP/workspace/wrathion/modules/PDF" "/usr/bin/cmake" -P "CMakeFiles/wrathion_module_pdf.dir/cmake_clean.cmake"</buildArguments>
 <buildTarget></buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>

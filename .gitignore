@@ -1,6 +1,5 @@
 *~
-bin/kernels
-bin/wrathion*
+bin/*
 *.cmake
 **/CMakeFiles
 **/Makefile
