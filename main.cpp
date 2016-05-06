@@ -41,6 +41,7 @@
 #include "Module.h"
 #include <csignal>
 #include <ctime>
+#include <cstdint>
 #include "UnicodeParser.h"
 #include "CLMarkovPassGen.h"
 //#include "MarkovPassGen.h"
@@ -87,7 +88,8 @@ const string help = "wrathion [OPTIONS]\n"
 "    -M, --mask              mask\n"
 "    -X, --model             type of Markov model:\n"
 "          - classic - First-order Markov model (default)\n"
-"          - layered - Layered Markov model\n";
+"          - layered - Layered Markov model\n"
+"    -I - return password on given index\n";
 
 struct opts : CLMarkovPassGen::Options {
     opts():
@@ -119,6 +121,7 @@ struct opts : CLMarkovPassGen::Options {
     bool mpi;
 #endif
     bool verbose;
+    uint64_t index = UINT64_MAX;
 };
 
 bool stop = false;
@@ -168,7 +171,7 @@ int main(int argc, char** argv) {
 							 {"mask", required_argument, 0, 'M'},
                {0, 0, 0, 0}
              };
-    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:S:T:L:M:X:", long_options,&opt_index)) != -1){
+    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:S:T:L:M:X:I:", long_options,&opt_index)) != -1){
         switch(opt){
         	  case 'S':
         	  	o.stat_file = optarg;
@@ -185,6 +188,9 @@ int main(int argc, char** argv) {
         	  case 'M':
         	  	o.mask = optarg;
         	  	break;
+        	  case 'I':
+        	    o.index = strtoul(optarg, nullptr, 0);
+        	    break;
             case 'h':
                 o.help = true; break;
             case 'f':
@@ -264,6 +270,13 @@ int main(int argc, char** argv) {
         cout << GPUCracker::availableDevices();
         GPUCracker::destroyOpenCL();
         return 0;
+    }
+    if(!o.stat_file.empty() && o.index != UINT64_MAX)
+    {
+      CLMarkovPassGen passgen {o};
+      string pass = passgen.getPassword(o.index);
+      cout << pass << endl;
+      return 0;
     }
     if (o.dict.empty() && o.unicode_file.empty() &&  o.stat_file.empty())
     {

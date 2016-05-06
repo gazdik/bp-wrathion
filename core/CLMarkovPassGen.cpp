@@ -461,3 +461,36 @@ void CLMarkovPassGen::applyMask(CLMarkovPassGen::SortElement *table[MAX_PASS_LEN
     }
   }
 }
+
+std::string CLMarkovPassGen::getPassword(uint64_t index)
+{
+  uint8_t buffer[256];
+
+  if (index >= _global_stop_index)
+    return (string {""});
+
+  // Determine current length
+  unsigned length = 1;
+  while (index >= _permutations[length])
+    length++;
+
+  // Convert global index into local index
+  uint64_t local_index = index - _permutations[length - 1];
+  uint64_t partial_index;
+  uint8_t last_char = 0;
+
+  // Create password
+  for (int p = 0; p < length; p++)
+  {
+    partial_index = local_index % _thresholds[p];
+    local_index = local_index / _thresholds[p];
+
+    last_char = _markov_table[p * ASCII_CHARSET_SIZE * _max_threshold
+                             + last_char * _max_threshold + partial_index];
+
+    buffer[p] = last_char;
+  }
+
+  return (string {(char *) buffer, length});
+
+}

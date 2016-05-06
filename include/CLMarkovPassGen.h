@@ -32,9 +32,11 @@
 #else
 #include <arpa/inet.h>     // ntohl, ntohs
 #endif
+#include <string>
 #include <ctime>           // timespec
 #include <pthread.h>
 #include <cstdlib>         // atoi, qsort
+#include <cstdint>
 
 class CLMarkovPassGen : public PassGen
 {
@@ -62,6 +64,7 @@ public:
 //  virtual void saveState(std::string filename);
 //  virtual void loadState(std::string filename);
   virtual uint8_t maxPassLen();
+  std::string getPassword(uint64_t index);
 private:
 
   CLMarkovPassGen (const CLMarkovPassGen & o);
