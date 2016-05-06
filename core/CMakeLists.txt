@@ -8,7 +8,10 @@ file( GLOB component_SOURCES *.cpp )
 add_library(wrathion_core SHARED ${component_SOURCES})
 set_target_properties(wrathion_core PROPERTIES PREFIX "")
 
-target_link_libraries(wrathion_core ws2_32)
+if (WIN32)
+  target_link_libraries(wrathion_core ws2_32)
+endif (WIN32)
+
 target_link_libraries(wrathion_core OpenCL)
 
 file(COPY kernels DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
