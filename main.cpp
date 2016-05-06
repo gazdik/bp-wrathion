@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
         	  	o.mask = optarg;
         	  	break;
         	  case 'I':
-        	    o.index = strtoul(optarg, nullptr, 0);
+        	    o.index = strtoull(optarg, nullptr, 0);
         	    break;
             case 'h':
                 o.help = true; break;
