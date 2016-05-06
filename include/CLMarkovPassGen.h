@@ -67,6 +67,7 @@ public:
 //  virtual void loadState(std::string filename);
   virtual uint8_t maxPassLen();
   std::string getPassword(uint64_t index);
+  virtual bool getPassword(char* pass, uint32_t *len);
 private:
 
   CLMarkovPassGen (const CLMarkovPassGen & o);
@@ -120,6 +121,9 @@ private:
   unsigned _min_reservation_size;
   unsigned _reservation_size;
   struct timespec _speed_clock;
+
+  // CPU cracker variables
+  unsigned _length = 1;
 
   cl::Kernel _kernel;
   cl::Buffer _markov_table_buffer;

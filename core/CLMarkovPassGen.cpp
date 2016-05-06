@@ -71,12 +71,16 @@ CLMarkovPassGen::CLMarkovPassGen(CLMarkovPassGen::Options & options)
 
   _global_start_index = _permutations[_min_length - 1];
   _global_stop_index = _permutations[_max_length];
-//  _reservation_size = _gws; // The lowest value
 
   _num_instances = 0;
 
   _gpu_code.filename = _kernel_source;
   _gpu_code.name = _kernel_name;
+
+  _length = _min_length;
+
+  _min_reservation_size = 1024;
+  _reservation_size = _min_reservation_size;
 
 #ifndef NDEBUG
   cout << "Minimal length: " << _min_length << "\n";
@@ -103,8 +107,11 @@ CLMarkovPassGen::CLMarkovPassGen(CLMarkovPassGen::Options & options)
 }
 
 CLMarkovPassGen::CLMarkovPassGen(const CLMarkovPassGen& o) :
-    _instance_id { o._num_instances++ }
+    PassGen(o), _instance_id { o._num_instances++ },
+    _min_reservation_size { o._min_reservation_size },
+    _reservation_size { o._reservation_size }
 {
+  clock_gettime(CLOCK_MONOTONIC, &_speed_clock);
 }
 
 CLMarkovPassGen::~CLMarkovPassGen()
@@ -155,6 +162,7 @@ void CLMarkovPassGen::setKernelGWS(uint64_t gws)
   _gws = gws;
   // Initialize reservation size
   _min_reservation_size = 4 * _gws;
+  gpu_mode = true;
 }
 
 void CLMarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
@@ -210,33 +218,25 @@ bool CLMarkovPassGen::nextKernelStep()
 
 bool CLMarkovPassGen::reservePasswords()
 {
-  if (_local_start_index == 0)
+  struct timespec end;
+  clock_gettime(CLOCK_MONOTONIC, &end);
+
+  double elapsed = (end.tv_sec - _speed_clock.tv_sec);
+  //elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
+
+  unsigned speed = _reservation_size / elapsed;
+  _speed_clock = end;
+  unsigned new_res_size = speed;
+
+  unsigned max_res_size = _reservation_size << 5;		// Multiply by 16
+  if (new_res_size > max_res_size)
   {
+    new_res_size = max_res_size;
+  }
+  _reservation_size = new_res_size;
+
+  if (_reservation_size < _min_reservation_size)
     _reservation_size = _min_reservation_size;
-    clock_gettime(CLOCK_MONOTONIC, &_speed_clock);
-  }
-  else
-  {
-    struct timespec end;
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    double elapsed = (end.tv_sec - _speed_clock.tv_sec);
-    //elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
-
-    unsigned speed = _reservation_size / elapsed;
-    _speed_clock = end;
-	unsigned new_res_size = speed;
-
-    unsigned max_res_size = _reservation_size << 5;		// Multiply by 16
-    if (new_res_size > max_res_size)
-    {
-      new_res_size = max_res_size;
-    }
-    _reservation_size = new_res_size;
-
-    if (_reservation_size < _min_reservation_size)
-      _reservation_size = _min_reservation_size;
-  }
 
   pthread_mutex_lock(&_global_index_mutex);
   _local_start_index = _global_start_index;
@@ -528,4 +528,39 @@ std::string CLMarkovPassGen::getPassword(uint64_t index)
 
   return (string {(char *) buffer, length});
 
+}
+
+bool CLMarkovPassGen::getPassword(char* pass, uint32_t* len)
+{
+  bool state;
+
+  if (_local_start_index >= _local_stop_index)
+    if (!reservePasswords())
+      return (false);
+
+  uint64_t index = _local_start_index++;
+
+  // Determine current length
+  while (index >= _permutations[_length])
+    _length++;
+
+  *len = _length;
+  // Convert global index into local index
+  index = index - _permutations[_length - 1];
+  uint64_t partial_index;
+  uint8_t last_char = 0;
+
+  // Create password
+  for (int p = 0; p < _length; p++)
+  {
+    partial_index = index % _thresholds[p];
+    index = index / _thresholds[p];
+
+    last_char = _markov_table[p * ASCII_CHARSET_SIZE * _max_threshold
+                             + last_char * _max_threshold + partial_index];
+
+    pass[p] = last_char;
+  }
+
+  return (true);
 }

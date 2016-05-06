@@ -36,12 +36,12 @@ PassGen::PassGen():gpu_mode(false) {
     verbose = false;
 }
 
-//PassGen::PassGen(const PassGen& o) :
-//		gws { o.gws }, gpu_mode { o.gpu_mode },
-//		verbose { o.verbose }
-//{
-//		passBuffer = new char[256];
-//}
+PassGen::PassGen(const PassGen& o) :
+		gws { o.gws }, gpu_mode { o.gpu_mode },
+		verbose { o.verbose }
+{
+		passBuffer = new char[256];
+}
 
 PassGen::~PassGen() {
     delete[] passBuffer;
@@ -67,7 +67,8 @@ uint8_t PassGen::maxPassLen() {
 bool PassGen::getPassword(std::string* pass){
     uint32_t len;
     bool res = getPassword(passBuffer,&len);
-    pass->assign(passBuffer,len);
+    if (res)
+      pass->assign(passBuffer,len);
     return res;
 }
 

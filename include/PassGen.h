@@ -60,7 +60,7 @@ public:
     };
     
     PassGen();
-//    PassGen(const PassGen & o);
+    PassGen(const PassGen & o);
 
     virtual ~PassGen();
     /**
