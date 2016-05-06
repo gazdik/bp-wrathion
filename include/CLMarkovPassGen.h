@@ -52,7 +52,7 @@ public:
     std::string mask;
   };
 
-  CLMarkovPassGen (Options & options);
+  CLMarkovPassGen (Options & options, bool cpu_mode = false);
   virtual ~CLMarkovPassGen ();
 
   virtual KernelCode * getKernelCode();
@@ -97,6 +97,7 @@ private:
   unsigned findStatistics(std::ifstream & stat_file);
   void applyMask(SortElement *table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE]);
 
+  static bool _cpu_mode; // TODO
   static KernelCode _gpu_code;
   static Mask _mask;
   static Model _model;

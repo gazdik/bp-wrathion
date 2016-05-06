@@ -66,7 +66,8 @@ const string help = "wrathion [OPTIONS]\n"
 "    -f - input file\n"
 "    --modules -l - list loaded modules\n"
 "    --devices -s - list platforms and devices\n"
-"    --cpu -c - prefer CPU over GPU\n"
+"    --cpu-cracker -c - prefer CPU cracker over GPU generator\n"
+"    --cpu-generator -C - prefer CPU generator over GPU generator\n"
 "    --map -d - devices to use <platform>:<device>[:<GWS>][,<platform>:<device>[:<GWS>],...]\n"
 "    --chars -p - chars for creating passwords (default: abcdefghijklmnopqrstuvwxyz)\n"
 "    -u (alternative of --chars) - file with unicode characters in hex form\n"
@@ -96,7 +97,7 @@ struct opts : CLMarkovPassGen::Options {
         help(false),
         show_modules(false),
         show_devices(false),
-        prefer_cpu(false),
+        prefer_cpu_cracker(false),
         max_pass_len(10),
         stdin_mode(true),
 #ifdef WRATHION_MPI       
@@ -108,7 +109,8 @@ struct opts : CLMarkovPassGen::Options {
     string input_file;
     bool show_modules;
     bool show_devices;
-    bool prefer_cpu;
+    bool prefer_cpu_cracker;
+    bool prefer_cpu_generator = false;
     string devices_mapping;
     char chars[256] = {0};
     UnicodeParser unicodeParser;
@@ -157,7 +159,8 @@ int main(int argc, char** argv) {
                {"devices", no_argument, 0, 's'},
                {"dict",    required_argument, 0, 'r'},
                {"threads",  required_argument, 0, 't'},
-               {"cpu",  no_argument, 0, 'c'},
+               {"cpu-cracker",  no_argument, 0, 'c'},
+               {"cpu-generator",  no_argument, 0, 'C'},
                {"map",  required_argument, 0, 'd'},
                {"chars",    required_argument, 0, 'p'},
 #ifdef WRATHION_MPI       
@@ -171,7 +174,7 @@ int main(int argc, char** argv) {
 							 {"mask", required_argument, 0, 'M'},
                {0, 0, 0, 0}
              };
-    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:S:T:L:M:X:I:", long_options,&opt_index)) != -1){
+    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:S:T:L:M:X:I:C", long_options,&opt_index)) != -1){
         switch(opt){
         	  case 'S':
         	  	o.stat_file = optarg;
@@ -191,6 +194,9 @@ int main(int argc, char** argv) {
         	  case 'I':
         	    o.index = strtoull(optarg, nullptr, 0);
         	    break;
+        	  case 'C':
+        	    o.prefer_cpu_generator = true;
+        	    break;
             case 'h':
                 o.help = true; break;
             case 'f':
@@ -200,7 +206,7 @@ int main(int argc, char** argv) {
             case 's':
                 o.show_devices = true; break;
             case 'c':
-                o.prefer_cpu = true; break;
+                o.prefer_cpu_cracker = true; break;
             case 'd':
                 o.devices_mapping.assign(optarg); break;
             case 'p':
@@ -292,7 +298,7 @@ int main(int argc, char** argv) {
                 cout << "This file is NOT encrypted." << endl;
                 return 0;
             }
-            if(o.prefer_cpu){
+            if(o.prefer_cpu_cracker){
                 cout << "Trying to get CPU cracker" << endl;
                 crackerFactory = format->getCPUCracker();
                 if(crackerFactory == NULL){
@@ -347,7 +353,7 @@ int main(int argc, char** argv) {
         } else if (!o.dict.empty()){
             passgen = new DictionaryPassGen(o.dict);
         } else {
-            passgen = new CLMarkovPassGen(o);
+            passgen = new CLMarkovPassGen(o, o.prefer_cpu_generator);
         }
         passgen->loadState(o.input_file+".passgen");
         

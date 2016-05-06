@@ -37,6 +37,7 @@
 
 using namespace std;
 
+bool CLMarkovPassGen::_cpu_mode;
 PassGen::KernelCode CLMarkovPassGen::_gpu_code;
 Mask CLMarkovPassGen::_mask;
 CLMarkovPassGen::Model CLMarkovPassGen::_model;
@@ -53,8 +54,9 @@ cl_ulong CLMarkovPassGen::_global_stop_index;
 pthread_mutex_t CLMarkovPassGen::_global_index_mutex;
 pthread_mutexattr_t CLMarkovPassGen::_global_index_mutex_attr;
 
-CLMarkovPassGen::CLMarkovPassGen(CLMarkovPassGen::Options & options)
+CLMarkovPassGen::CLMarkovPassGen(Options& options, bool cpu_mode)
 {
+  _cpu_mode = cpu_mode; // TODO
   pthread_mutexattr_init(&_global_index_mutex_attr);
   pthread_mutex_init(&_global_index_mutex, &_global_index_mutex_attr);
   _mask = Mask { options.mask };
@@ -116,7 +118,6 @@ CLMarkovPassGen::CLMarkovPassGen(const CLMarkovPassGen& o) :
 
 CLMarkovPassGen::~CLMarkovPassGen()
 {
-
   if (_instance_id == FACTORY_INSTANCE_ID)
   {
     pthread_mutex_destroy(&_global_index_mutex);
@@ -132,7 +133,10 @@ CLMarkovPassGen::~CLMarkovPassGen()
 
 PassGen::KernelCode* CLMarkovPassGen::getKernelCode()
 {
-  return &_gpu_code;
+  if (_cpu_mode)
+    return (nullptr);
+  else
+    return (&_gpu_code);
 }
 
 bool CLMarkovPassGen::isFactory()
