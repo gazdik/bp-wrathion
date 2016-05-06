@@ -147,7 +147,7 @@ void CLMarkovPassGen::setKernelGWS(uint64_t gws)
 {
   _gws = gws;
   // Initialize reservation size
-  _reservation_size = 4 * _gws;
+  _min_reservation_size = 4 * _gws;
 }
 
 void CLMarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
@@ -203,6 +203,34 @@ bool CLMarkovPassGen::nextKernelStep()
 
 bool CLMarkovPassGen::reservePasswords()
 {
+  if (_local_start_index == 0)
+  {
+    _reservation_size = _min_reservation_size;
+    clock_gettime(CLOCK_MONOTONIC, &_speed_clock);
+  }
+  else
+  {
+    struct timespec end;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    double elapsed = (end.tv_sec - _speed_clock.tv_sec);
+    elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
+
+    unsigned speed = _reservation_size / elapsed;
+    _speed_clock = end;
+    unsigned new_res_size = speed / 2;
+
+    unsigned max_res_size = _reservation_size * 10;
+    if (new_res_size > max_res_size)
+    {
+      new_res_size = max_res_size;
+    }
+    _reservation_size = new_res_size;
+
+    if (_reservation_size < _min_reservation_size)
+      _reservation_size = _min_reservation_size;
+  }
+
   pthread_mutex_lock(&_global_index_mutex);
   _local_start_index = _global_start_index;
   _global_start_index += _reservation_size;

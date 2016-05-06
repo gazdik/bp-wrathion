@@ -115,7 +115,8 @@ private:
   std::size_t _gws;
   cl_ulong _local_start_index = 1;
   cl_ulong _local_stop_index = 0;
-  std::size_t _reservation_size;
+  unsigned _min_reservation_size;
+  unsigned _reservation_size;
   struct timespec _speed_clock;
 
   cl::Kernel _kernel;
