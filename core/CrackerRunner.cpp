@@ -199,6 +199,7 @@ void* CrackerRunner::start_thread(void* arg){
             c->runner->stop();
             break;
         case PASS_EXHAUSTED:
+          break;
         case STOP_COMMAND:
             break;
         case DEVICE_NOT_EXISTS:

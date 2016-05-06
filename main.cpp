@@ -42,7 +42,8 @@
 #include <csignal>
 #include <ctime>
 #include "UnicodeParser.h"
-#include "MarkovPassGen.h"
+#include "CLMarkovPassGen.h"
+//#include "MarkovPassGen.h"
 
 #ifdef WRATHION_MPI
 #include <mpi.h>
@@ -77,17 +78,18 @@ const string help = "wrathion [OPTIONS]\n"
 "    --threads=NUMTHREADS, -t - number of threads for CPU Cracking\n"
 "    -v - verbose mode (more information is displayed)\n"
 "\nMarkov attack\n"
-"    --stat=file - stat file for Markov attack\n"
-"    --model=type - type of Markov model:\n"
-"           - classic - First-order Markov model (default)\n"
-"           - layered - Layered Markov model\n"
-"    --threshold=value - number of characters per position (default 5)\n"
-"    --min=value - minimal length of password (default 1)\n"
-"    --max=value - maximal length of password (default 64)\n"
-"    --limits - comma-sepparated threshold values\n"
-"    --mask=mask - mask\n";
+"    -S, --statistics        file with statistics\n"
+"    -T, --thresholds=glob[:pos]\n"
+"                            number of characters per position\n"
+"          - glob - global value for every position in password (default 15)\n"
+"          - pos - positional comma-separated values(overwrites global value)\n"
+"    -L, --length=min:max    length of password (default 1:10)\n"
+"    -M, --mask              mask\n"
+"    -X, --model             type of Markov model:\n"
+"          - classic - First-order Markov model (default)\n"
+"          - layered - Layered Markov model\n";
 
-struct opts : MarkovPassGenOptions {
+struct opts : CLMarkovPassGen::Options {
     opts():
         help(false),
         show_modules(false),
@@ -159,37 +161,29 @@ int main(int argc, char** argv) {
                {"mpi", no_argument, 0, 'z'},
 #endif
 							 // Markov attack
-							 {"stat", required_argument, 0, 1},
-							 {"threshold", required_argument, 0, 2},
-							 {"min", required_argument, 0, 3},
-							 {"max", required_argument, 0, 4},
-							 {"model", required_argument, 0, 5},
-							 {"mask", required_argument, 0, 6},
-							 {"limits", required_argument, 0, 7},
+							 {"statistics", required_argument, 0, 'S'},
+							 {"thresholds", required_argument, 0, 'T'},
+							 {"length", required_argument, 0, 'L'},
+							 {"model", required_argument, 0, 'X'},
+							 {"mask", required_argument, 0, 'M'},
                {0, 0, 0, 0}
              };
-    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:", long_options,&opt_index)) != -1){
+    while ((opt = getopt_long(argc, argv, "hf:lscd:p:u:r:t:vm:S:T:L:M:X:", long_options,&opt_index)) != -1){
         switch(opt){
-        	  case 1:
+        	  case 'S':
         	  	o.stat_file = optarg;
         	  	break;
-        	  case 2:
-        	  	o.threshold = atoi(optarg);
+        	  case 'T':
+        	  	o.thresholds = optarg;
         	  	break;
-        	  case 3:
-        	  	o.min_length = atoi(optarg);
+        	  case 'L':
+        	  	o.length = optarg;
         	  	break;
-        	  case 4:
-        	  	o.max_length = atoi(optarg);
-        	  	break;
-        	  case 5:
+        	  case 'X':
         	  	o.model = optarg;
         	  	break;
-        	  case 6:
+        	  case 'M':
         	  	o.mask = optarg;
-        	  	break;
-        	  case 7:
-        	  	o.limits = optarg;
         	  	break;
             case 'h':
                 o.help = true; break;
@@ -271,6 +265,11 @@ int main(int argc, char** argv) {
         GPUCracker::destroyOpenCL();
         return 0;
     }
+    if (o.dict.empty() && o.unicode_file.empty() &&  o.stat_file.empty())
+    {
+      cout << help;
+      return 0;
+    }
     if(!o.input_file.empty()){
         format = pool.getFileFormat(o.input_file); // Detection of file format
         if(format == NULL){
@@ -334,10 +333,8 @@ int main(int argc, char** argv) {
             passgen = new UnicodePassGen(o.unicodeParser.getCharsPtr(), chars_count, o.max_pass_len*UTF8_CHAR_MAXSIZE, o.max_pass_len);
         } else if (!o.dict.empty()){
             passgen = new DictionaryPassGen(o.dict);
-        } else if (not o.stat_file.empty()) {
-        	passgen = new MarkovPassGen(o);
         } else {
-            passgen = new ThreadedBrutePassGen(o.chars, o.max_pass_len);
+            passgen = new CLMarkovPassGen(o);
         }
         passgen->loadState(o.input_file+".passgen");
         

@@ -32,10 +32,7 @@
 #include <fstream>
 #include <mutex>
 
-const unsigned MIN_PASS_LENGTH = 1;
-const unsigned MAX_PASS_LENGTH = 64;
 const unsigned DEFAULT_THRESHOLD = 5;
-const unsigned CHARSET_SIZE = 256;
 const unsigned ETX = 3;
 
 struct MarkovPassGenOptions
@@ -121,7 +118,7 @@ private:
 	/**
 	 * 3D Markov table
 	 */
-	static uint8_t *_markov_table[MAX_PASS_LENGTH][CHARSET_SIZE];
+	static uint8_t *_markov_table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE];
 	/**
 	 * Precomputed permutations for every length
 	 */
@@ -171,7 +168,7 @@ private:
 	unsigned findStat(std::ifstream& stat_file, int stat_type);
 
 	void applyLimits(const std::string & limits);
-	void applyMask(MarkovSortTableElement *table[MAX_PASS_LENGTH][CHARSET_SIZE], const std::string & mask);
+	void applyMask(MarkovSortTableElement *table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE], const std::string & mask);
 	void applyMetachar(MarkovSortTableElement **table, const char & metachar);
 	void applyChar(MarkovSortTableElement **table, const char & character);
 	/**

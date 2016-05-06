@@ -92,42 +92,33 @@ std::string GPUCracker::availableDevices(){
 }
 
 void GPUCracker::preparePasswords(){
-    if(!GPUPassGen || !GPUPassGenSeeded){
-        uint8_t maxLen = passgen->maxPassLen();
+    if(!GPUPassGen){
+        uint8_t entry_length = passgen->maxPassLen() + 1;
         uint32_t len;
-        for(uint32_t i = 0;i< deviceConfig.globalWorkSize;i++){
-            if(!passgen->getPassword(passwdsToGPU+(i*maxLen)+1,&len)){
-                passgenExhausted = true;
+
+        if (!passgen->getPassword(&passwdsToGPU[0*entry_length + 1], &len)) {
+          passgenExhausted = true;
+          return;
+        }
+
+        for(uint32_t i = 1; i< deviceConfig.globalWorkSize; i++){
+            if(!passgen->getPassword(&passwdsToGPU[i*entry_length + 1],&len)){
                 break;
             }
-            passwdsToGPU[i*maxLen] = len & 0xFF;
+            passwdsToGPU[i*entry_length] = len & 0xFF;
         }
     } else{
-        nextGPUPassGenStep = passgen->getKernelStep();
+        if(!passgen->nextKernelStep())
+          passgenExhausted = true;
     }
 }
 
 void GPUCracker::updatePasswords() {
     if(!GPUPassGen){
-        uint8_t maxLen = passgen->maxPassLen();
-        que.enqueueWriteBuffer(passwordBuffer,CL_TRUE,0,sizeof(char)*(maxLen+1)*deviceConfig.globalWorkSize,passwdsToGPU);   
+        uint8_t entry_length = passgen->maxPassLen() + 1;
+        que.enqueueWriteBuffer(passwordBuffer,CL_TRUE,0,sizeof(char)*entry_length*deviceConfig.globalWorkSize,passwdsToGPU);
     }else{
-        if(!GPUPassGenSeeded){
-            uint8_t maxLen = passgen->maxPassLen();
-            que.enqueueWriteBuffer(passwordBuffer,CL_TRUE,0,sizeof(char)*(maxLen+1)*deviceConfig.globalWorkSize,passwdsToGPU);
-            GPUPassGenSeeded = true;
-            //also init kernel params
-            passgenKernel.setArg(0,passwordBuffer);
-            //arg 1 is step
-            //next params initializes passgen itself
-            passgen->initKernel(&passgenKernel,&que,&context);
-        }else{
-            if(nextGPUPassGenStep != lastGPUPassGenStep){
-                passgenKernel.setArg(1,nextGPUPassGenStep);
-                lastGPUPassGenStep = nextGPUPassGenStep;
-            }
-            que.enqueueNDRangeKernel(passgenKernel,cl::NullRange,cl::NDRange(deviceConfig.globalWorkSize),localSize);
-        }
+        que.enqueueNDRangeKernel(passgenKernel,cl::NullRange,cl::NDRange(deviceConfig.globalWorkSize),localSize);
     }
 }
 
@@ -151,8 +142,6 @@ bool GPUCracker::initDevice(){
         loadKernel(passGpuCode->filename, passGpuCode->name, &this->passgenKernel, &this->passgenProgram);
         GPUPassGen = true;
         passgen->setKernelGWS(deviceConfig.globalWorkSize);
-        lastGPUPassGenStep = 0;
-        GPUPassGenSeeded = false;
     }
     
     que = cl::CommandQueue(context,device);
@@ -183,7 +172,7 @@ bool GPUCracker::loadKernel(std::string& filename, std::string& kernelName, cl::
     uint64_t binaryChangedTS = Utils::getFileModificationTS(binrayFilename);
     uint64_t sourceChangedTS = Utils::getFileModificationTS(filename);
     
-    loadBinary = binaryChangedTS > sourceChangedTS;
+    //loadBinary = binaryChangedTS > sourceChangedTS;
     
     // open compiled program if exists
     if(loadBinary){
@@ -255,10 +244,10 @@ bool GPUCracker::passFound(){
 }
 
 void GPUCracker::loadPositvePasswords(){
-    uint32_t maxLen = passgen->maxPassLen();
+    uint32_t entry_length = passgen->maxPassLen() + 1;
     uint32_t bitmapSize = deviceConfig.globalWorkSize/32;
     this->que.enqueueReadBuffer(this->foundBitmapBuffer,CL_FALSE,0,sizeof(uint32_t)*bitmapSize,foundBitmap);
-    this->que.enqueueReadBuffer(this->passwordBuffer,CL_TRUE,0,sizeof(char)*(maxLen+1)*deviceConfig.globalWorkSize,passwdsFromGPU);
+    this->que.enqueueReadBuffer(this->passwordBuffer,CL_TRUE,0,sizeof(char)*entry_length*deviceConfig.globalWorkSize,passwdsFromGPU);
     std::string pass;
     for(uint32_t i = 0;i<bitmapSize;i++){
         if(foundBitmap[i] > 0){
@@ -266,7 +255,7 @@ void GPUCracker::loadPositvePasswords(){
             uint32_t val = foundBitmap[i];
             for(uint8_t j = 0;val > 0;j++){
                 if((val & 0x80000000) != 0){
-                    char* passptr = passwdsFromGPU+maxLen*(passpos+j);
+                    char* passptr = passwdsFromGPU+entry_length*(passpos+j);
                     pass.assign(passptr+1 , *passptr);
                     positivePasswords.push_back(pass);
                 }
@@ -299,11 +288,21 @@ bool GPUCracker::initCommonData(){
     que.enqueueWriteBuffer(foundFlagBuffer,CL_FALSE,0,sizeof(char),&foundFlag);
     que.enqueueWriteBuffer(foundBitmapBuffer,CL_TRUE,0,sizeof(uint32_t)*bitmapSize,foundBitmap);
     
+    cl_uchar pass_entry_length = passgen->maxPassLen() + PASS_EXTRA_BYTES;
+//    cl_uchar pass_entry_length = passgen->maxPassLen();
+
     kernel.setArg(0,passwordBuffer);
-    kernel.setArg(1,passgen->maxPassLen());
+    kernel.setArg(1,pass_entry_length);
     kernel.setArg(2,foundFlagBuffer);
     kernel.setArg(3,foundBitmapBuffer);
     userParamIndex = 4;
+
+    if(GPUPassGen)
+    {
+      passgenKernel.setArg(0,passwordBuffer);
+      passgenKernel.setArg(1,pass_entry_length);
+      passgen->initKernel(&passgenKernel, &que, &context);
+    }
     return true;
 }
 
@@ -328,36 +327,66 @@ void GPUCracker::run(){
         stopReason = INTERNAL_ERROR;
         return;
     }
-    cl::NDRange globalSize = cl::NDRange(deviceConfig.globalWorkSize);
+
+  cl::NDRange globalSize = cl::NDRange(deviceConfig.globalWorkSize);
+  pass_found = false;
+
+  // Prepare passwords for first run
+  preparePasswords();
+  while (!pass_found && !stop_work)
+  {
+    // Update passwords in in kernel's buffer and run kernel
+    updatePasswords();
+    this->que.enqueueNDRangeKernel(this->kernel, cl::NullRange, globalSize,
+                                   localSize);
+
+    // Verify positive passwords from previous iteration
+    if (!positivePasswords.empty())
+    {
+      for (std::vector<std::string>::iterator i = positivePasswords.begin();
+          i != positivePasswords.end(); i++)
+      {
+        if (verifyPassword(*i))
+        {
+          pass_found = true;
+          password.assign(*i);
+          break;
+        }
+      }
+      positivePasswords.clear();
+    }
+
+    // Stop if generator has stopped
+    if (passgenExhausted)
+      break;
+
+    // Prepare passwords for next iteration
     preparePasswords();
-    pass_found = false;
-    while(!pass_found && !stop_work){
-        updatePasswords();
-        this->que.enqueueNDRangeKernel(this->kernel,cl::NullRange,globalSize,localSize);
-        if(!positivePasswords.empty()){
-            for(std::vector<std::string>::iterator i = positivePasswords.begin(); i!= positivePasswords.end();i++){
-                if(verifyPassword(*i)){
-                    pass_found = true;
-                    stopReason = PASS_FOUND;
-                    password.assign(*i);
-                    break;
-                }
-            }
-            positivePasswords.clear();
-        }
-        preparePasswords();
-        int res = this->que.finish();
+
+    // Wait until the cracker's finished
+    int res = this->que.finish();
 #ifndef NDEBUG
-        this->debugKernel(res);
+    this->debugKernel(res);
 #endif
-        if(!pass_found && passFound()){
-            loadPositvePasswords();
-        }
-        passwdsCount += deviceConfig.globalWorkSize;
+    // Load positive passwords from kernel
+    if (!pass_found && passFound())
+    {
+      loadPositvePasswords();
     }
-    if(stop_work){
-        stopReason = STOP_COMMAND;
-    }
+
+    // Increment counter of cracked passwords
+    passwdsCount += deviceConfig.globalWorkSize;
+  }
+
+  // Wait until a kernel's finished
+  que.finish();
+
+  if (pass_found)
+    stopReason = PASS_FOUND;
+  else if (passgenExhausted)
+    stopReason = PASS_EXHAUSTED;
+  else if (stop_work)
+    stopReason = STOP_COMMAND;
 }
 
 bool GPUCracker::init_done = false;

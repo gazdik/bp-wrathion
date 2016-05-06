@@ -29,3 +29,5 @@ add_dependencies(test wrathion_core)
 
 target_link_libraries(wrathion wrathion_core OpenCL)
 target_link_libraries(test wrathion_core OpenCL)
+
+file(COPY core/kernels/markov_passgen.cl DESTINATION bin/kernels/)

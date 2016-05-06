@@ -36,12 +36,12 @@ PassGen::PassGen():gpu_mode(false) {
     verbose = false;
 }
 
-PassGen::PassGen(const PassGen& o) :
-		gws { o.gws }, gpu_mode { o.gpu_mode },
-		verbose { o.verbose }
-{
-		passBuffer = new char[256];
-}
+//PassGen::PassGen(const PassGen& o) :
+//		gws { o.gws }, gpu_mode { o.gpu_mode },
+//		verbose { o.verbose }
+//{
+//		passBuffer = new char[256];
+//}
 
 PassGen::~PassGen() {
     delete[] passBuffer;
@@ -69,6 +69,11 @@ bool PassGen::getPassword(std::string* pass){
     bool res = getPassword(passBuffer,&len);
     pass->assign(passBuffer,len);
     return res;
+}
+
+bool PassGen::getPassword(char * pass, uint32_t * len)
+{
+  return (false);
 }
 
 PassGen* PassGen::createGenerator() {
@@ -529,3 +534,7 @@ void PassGen::setStep(unsigned step)
 {
 }
 
+bool PassGen::nextKernelStep()
+{
+  return(false);
+}

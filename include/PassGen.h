@@ -29,6 +29,12 @@
 #include <map>
 #include <CL/cl.hpp>
 
+
+const unsigned MIN_PASS_LENGTH = 1;
+const unsigned MAX_PASS_LENGTH = 64;
+const unsigned ASCII_CHARSET_SIZE = 256;
+
+
 /**
  * ID of password generator saved in state file
  */
@@ -54,7 +60,7 @@ public:
     };
     
     PassGen();
-    PassGen(const PassGen & o);
+//    PassGen(const PassGen & o);
 
     virtual ~PassGen();
     /**
@@ -69,7 +75,7 @@ public:
      * @param len length of returned password
      * @return false if this is last password
      */
-    virtual bool getPassword(char* pass, uint32_t *len) = 0;
+    virtual bool getPassword(char* pass, uint32_t *len);
     /**
      * Returns code which can be run in OpenCL 
      * @return 
@@ -85,6 +91,11 @@ public:
      * @return 
      */
     virtual uint64_t getKernelStep();
+    /**
+     * Set arguments to kernel for next generator's step.
+     * @return
+     */
+    virtual bool nextKernelStep();
     /**
      * Initializes generator in OpenCL kernel
      * @param kernel

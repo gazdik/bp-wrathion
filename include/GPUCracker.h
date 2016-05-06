@@ -26,7 +26,11 @@
 
 #include "Cracker.h"
 #include <map>
+
+#define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
+
+#define PASS_EXTRA_BYTES 1
 
 struct PlatformDevices{
     cl::Platform platform;
