@@ -24,6 +24,8 @@
 #ifndef CLMARKOVPASSGEN_H_
 #define CLMARKOVPASSGEN_H_
 
+#define WIN32_LEAN_AND_MEAN
+
 #include "PassGen.h"
 #include "Mask.h"
 
