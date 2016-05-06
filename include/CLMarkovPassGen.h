@@ -24,14 +24,11 @@
 #ifndef CLMARKOVPASSGEN_H_
 #define CLMARKOVPASSGEN_H_
 
+#define WIN32_LEAN_AND_MEAN
+
 #include "PassGen.h"
 #include "Mask.h"
 
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <arpa/inet.h>     // ntohl, ntohs
-#endif
 #include <ctime>           // timespec
 #include <pthread.h>
 #include <cstdlib>         // atoi, qsort

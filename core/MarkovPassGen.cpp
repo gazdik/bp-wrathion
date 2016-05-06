@@ -23,7 +23,7 @@
 
 #include "MarkovPassGen.h"
 
-#include <arpa/inet.h>		// ntohl, ntohs
+
 #include <cstdlib>				// atoi, qsort
 
 #include <limits>

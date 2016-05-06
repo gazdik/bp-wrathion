@@ -23,6 +23,13 @@
 
 #include "CLMarkovPassGen.h"
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#else
+#include <arpa/inet.h>     // ntohl, ntohs
+#endif
+
 #include <algorithm>        // max_element
 #include <limits>
 #include <sstream>          // stringstream
