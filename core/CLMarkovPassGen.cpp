@@ -221,13 +221,13 @@ bool CLMarkovPassGen::reservePasswords()
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     double elapsed = (end.tv_sec - _speed_clock.tv_sec);
-    elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
+    //elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
 
     unsigned speed = _reservation_size / elapsed;
     _speed_clock = end;
-    unsigned new_res_size = speed / 2;
+	unsigned new_res_size = speed;
 
-    unsigned max_res_size = _reservation_size * 10;
+    unsigned max_res_size = _reservation_size << 5;		// Multiply by 16
     if (new_res_size > max_res_size)
     {
       new_res_size = max_res_size;
