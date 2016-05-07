@@ -199,6 +199,7 @@ void CLMarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
   kernel->setArg(5, _max_threshold);
   kernel->setArg(6, _local_start_index);
   kernel->setArg(7, _local_stop_index);
+  kernel->setArg(8, _length);
 }
 
 bool CLMarkovPassGen::nextKernelStep()
@@ -214,6 +215,7 @@ bool CLMarkovPassGen::nextKernelStep()
   {
     _kernel.setArg(6, _local_start_index);
     _kernel.setArg(7, _local_stop_index);
+    _kernel.setArg(8, _length);
     return (true);
   }
 
@@ -254,6 +256,10 @@ bool CLMarkovPassGen::reservePasswords()
 
   if (_local_stop_index > _global_stop_index)
     _local_stop_index = _global_stop_index;
+
+  // Determine current length
+  while (_local_start_index >= _permutations[_length])
+    _length++;
 
   return (true);
 }

@@ -124,7 +124,7 @@ private:
   struct timespec _speed_clock;
 
   // CPU cracker variables
-  unsigned _length = 1;
+  cl_uint _length = 1;
 
   cl::Kernel _kernel;
   cl::Buffer _markov_table_buffer;

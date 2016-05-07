@@ -30,7 +30,7 @@
 __kernel void markov_passgen (__global uchar *passwords, uchar entry_size,
                     __global uchar *markov_table, __constant uint *thresholds,
                     __constant ulong *permutations, uint max_threshold,
-                    ulong index_start, ulong index_stop)
+                    ulong index_start, ulong index_stop, uint length)
 {
   size_t id = get_global_id(0);
   ulong global_index = index_start + id;
@@ -44,7 +44,6 @@ __kernel void markov_passgen (__global uchar *passwords, uchar entry_size,
 
 
   // Determine current length
-  uint length = 1;
   while (global_index >= permutations[length])
   {
     length++;
