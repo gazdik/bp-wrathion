@@ -66,7 +66,13 @@ brute_bin=$2
 test_files_folder=$3
 out_file=$4
 
-run_markov_gpu $markov_bin $test_files_folder $out_file "r5_3.pdf" "0:0:65536"
-run_brute_gpu $brute_bin $test_files_folder $out_file "r5_3.pdf" "0:0:65536"
-run_markov_cpu $markov_bin $test_files_folder $out_file "r5_3.pdf" 4
-run_brute_cpu $brute_bin $test_files_folder $out_file "r5_3.pdf" 4
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_zzzzzzzz.pdf" "0:1:2048000"
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_bbbbbbbbb.pdf" "0:1:2048000,0:2:2048000"
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_ccccccccc.pdf" "0:1:2048000,0:2:2048000,0:3:2048000"
+
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_wj4pfpfp.pdf" "0:1:2048000"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_milarilar.pdf" "0:1:2048000,0:2:2048000"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_sholishol.pdf" "0:1:2048000,0:2:2048000,0:3:2048000"
+
+# run_markov_cpu $markov_bin $test_files_folder $out_file "r5_3.pdf" 4
+# run_brute_cpu $brute_bin $test_files_folder $out_file "r5_3.pdf" 4
