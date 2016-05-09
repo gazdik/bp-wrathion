@@ -1,0 +1,41 @@
+Priblizne rychlosti
+
+
+1) Rychlost mojho GPU generatora vs. stareho GPU generatora
+Parametre markov: -S stats/rockyou.wstat -T 26
+
+Hesla PDF:
+=============================================================================
+Index           Heslo orig         Heslo markov    Pocet GPU      Cas
+-----------------------------------------------------------------------------
+217180147157	  zzzzzzzz           wj4pfpfp        1              24m
+434360294317    bbbbbbbbb          milarilar       2              24m
+651540441476    ccccccccc          sholishol       3              24m
+
+Hesla ZIP:
+=============================================================================
+Index           Heslo orig         Heslo markov    Pocet GPU      Cas
+-----------------------------------------------------------------------------
+135922940	      kkkkkk             dm1sm1          1              15m
+259489250       uuuuuu             f4jtkj          2              15m
+321272405       zzzzzz             wj4pfp          3              11m
+
+2) Rychlost mojho CPU generatora vs. stary CPU generator (cracker tiez na CPU)
+
+Hesla ZIP:
+=============================================================================
+Index           Heslo orig         Heslo markov    Pocet CPU      Cas
+-----------------------------------------------------------------------------
+1901019         ddddd              amooo           1              14m
+3802039         hhhhh              l1863           2              15m
+8554589         rrrrr              h3bf0           4              15m
+12356629        zzzzz              wj4pf           6              15m
+
+Hesla PDF:
+=============================================================================
+Index           Heslo orig         Heslo markov    Pocet CPU      Cas
+-----------------------------------------------------------------------------
+3533996476	    kkkkkkk	 	         dm1sm1s         1              16m
+7067992953      vvvvvvv            4df3k8k         2              16m
+11565806652     akkkkkkk           dm1sm1st        4              15m
+16706165165     bbbbbbbb           milarila        6              15m
