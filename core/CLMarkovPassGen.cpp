@@ -228,13 +228,14 @@ bool CLMarkovPassGen::reservePasswords()
   clock_gettime(CLOCK_MONOTONIC, &end);
 
   double elapsed = (end.tv_sec - _speed_clock.tv_sec);
-  //elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
+  elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
 
-  unsigned speed = _reservation_size / elapsed;
+  unsigned speed = _reservation_size / elapsed / _gws;
+//  cout << "Elapsed: " << elapsed << ", Speed: " << speed << endl;
   _speed_clock = end;
-  unsigned new_res_size = speed;
+  unsigned new_res_size = speed * _gws;
 
-  unsigned max_res_size = _reservation_size << 5;		// Multiply by 16
+  unsigned max_res_size = _reservation_size << 4;		// Multiply by 8
   if (new_res_size > max_res_size)
   {
     new_res_size = max_res_size;
@@ -243,6 +244,8 @@ bool CLMarkovPassGen::reservePasswords()
 
   if (_reservation_size < _min_reservation_size)
     _reservation_size = _min_reservation_size;
+
+//  cout << "Reservation size: " << _reservation_size << endl;
 
   pthread_mutex_lock(&_global_index_mutex);
   _local_start_index = _global_start_index;
