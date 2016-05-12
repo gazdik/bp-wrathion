@@ -87,6 +87,17 @@ run_markov_gpu $markov_bin $test_files_folder $out_file "m_f4jtkj.zip" "0:1:2048
 run_brute_gpu $brute_bin $test_files_folder $out_file "b_zzzzzz.zip" "0:1:204800,0:2:204800,0:3:204800"
 run_markov_gpu $markov_bin $test_files_folder $out_file "m_wj4pfp.zip" "0:1:204800,0:2:204800,0:3:204800"
 
+# ZIP GPU
+
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_bbbbbbbb.doc" "0:1:204800"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_milarila.doc" "0:1:204800"
+
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_dddddddd.doc" "0:1:204800,0:2:204800"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_amoooooo.doc" "0:1:204800,0:2:204800"
+
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_ffffffff.doc" "0:1:204800,0:2:204800,0:3:204800"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_14444444.doc" "0:1:204800,0:2:204800,0:3:204800"
+
 # ZIP CPU
 
 run_brute_cpu $brute_bin $test_files_folder $out_file "b_ddddd.zip" 1
@@ -108,3 +119,14 @@ run_markov_cpu $markov_bin $test_files_folder $out_file "m_4df3k8k.pdf" 2
 
 run_brute_cpu $brute_bin $test_files_folder $out_file "b_akkkkkkk.pdf" 4
 run_markov_cpu $markov_bin $test_files_folder $out_file "m_dm1sm1st.pdf" 4
+
+# DOC CPU
+
+run_brute_cpu $brute_bin $test_files_folder $out_file "b_bbbbbbb.doc" 1
+run_markov_cpu $markov_bin $test_files_folder $out_file "m_milaril.doc" 1
+
+run_brute_cpu $brute_bin $test_files_folder $out_file "b_bbbbbbb.doc" 2
+run_markov_cpu $markov_bin $test_files_folder $out_file "m_milaril.doc" 2
+
+run_brute_cpu $brute_bin $test_files_folder $out_file "b_bbbbbbb.doc" 4
+run_markov_cpu $markov_bin $test_files_folder $out_file "m_milaril.doc" 4
