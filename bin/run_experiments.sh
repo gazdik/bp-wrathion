@@ -92,8 +92,8 @@ run_markov_gpu $markov_bin $test_files_folder $out_file "m_wj4pfp.zip" "0:1:2048
 run_brute_gpu $brute_bin $test_files_folder $out_file "b_bbbbbbbb.doc" "0:1:204800"
 run_markov_gpu $markov_bin $test_files_folder $out_file "m_milarila.doc" "0:1:204800"
 
-run_brute_gpu $brute_bin $test_files_folder $out_file "b_dddddddd.doc" "0:1:204800,0:2:204800"
-run_markov_gpu $markov_bin $test_files_folder $out_file "m_amoooooo.doc" "0:1:204800,0:2:204800"
+run_brute_gpu $brute_bin $test_files_folder $out_file "b_ddddddde.doc" "0:1:204800,0:2:204800"
+run_markov_gpu $markov_bin $test_files_folder $out_file "m_ckoooooo.doc" "0:1:204800,0:2:204800"
 
 run_brute_gpu $brute_bin $test_files_folder $out_file "b_ffffffff.doc" "0:1:204800,0:2:204800,0:3:204800"
 run_markov_gpu $markov_bin $test_files_folder $out_file "m_14444444.doc" "0:1:204800,0:2:204800,0:3:204800"
