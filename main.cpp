@@ -43,8 +43,7 @@
 #include <ctime>
 #include <cstdint>
 #include "UnicodeParser.h"
-#include "CLMarkovPassGen.h"
-//#include "MarkovPassGen.h"
+#include <MarkovPassGen.h>
 
 #ifdef WRATHION_MPI
 #include <mpi.h>
@@ -92,7 +91,7 @@ const string help = "wrathion [OPTIONS]\n"
 "          - layered - Layered Markov model\n"
 "    -I - return password on given index\n";
 
-struct opts : CLMarkovPassGen::Options {
+struct opts : MarkovPassGen::Options {
     opts():
         help(false),
         show_modules(false),
@@ -279,7 +278,7 @@ int main(int argc, char** argv) {
     }
     if(!o.stat_file.empty() && o.index != UINT64_MAX)
     {
-      CLMarkovPassGen passgen {o};
+      MarkovPassGen passgen {o};
       string pass = passgen.getPassword(o.index);
       cout << pass << endl;
       return 0;
@@ -353,7 +352,7 @@ int main(int argc, char** argv) {
         } else if (!o.dict.empty()){
             passgen = new DictionaryPassGen(o.dict);
         } else {
-            passgen = new CLMarkovPassGen(o, o.prefer_cpu_generator);
+            passgen = new MarkovPassGen(o, o.prefer_cpu_generator);
         }
         passgen->loadState(o.input_file+".passgen");
         

@@ -21,7 +21,7 @@
  *
  */
 
-#include "CLMarkovPassGen.h"
+#include <MarkovPassGen.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -37,24 +37,24 @@
 
 using namespace std;
 
-bool CLMarkovPassGen::_cpu_mode;
-PassGen::KernelCode CLMarkovPassGen::_gpu_code;
-Mask CLMarkovPassGen::_mask;
-CLMarkovPassGen::Model CLMarkovPassGen::_model;
-cl_uchar * CLMarkovPassGen::_markov_table;
-std::size_t CLMarkovPassGen::_markov_table_size;
-cl_ulong * CLMarkovPassGen::_permutations;
-cl_uint CLMarkovPassGen::_min_length;
-cl_uint CLMarkovPassGen::_max_length;
-int CLMarkovPassGen::_num_instances;
-cl_uint * CLMarkovPassGen::_thresholds;
-cl_uint CLMarkovPassGen::_max_threshold;
-cl_ulong CLMarkovPassGen::_global_start_index;
-cl_ulong CLMarkovPassGen::_global_stop_index;
-pthread_mutex_t CLMarkovPassGen::_global_index_mutex;
-pthread_mutexattr_t CLMarkovPassGen::_global_index_mutex_attr;
+bool MarkovPassGen::_cpu_mode;
+PassGen::KernelCode MarkovPassGen::_gpu_code;
+Mask MarkovPassGen::_mask;
+MarkovPassGen::Model MarkovPassGen::_model;
+cl_uchar * MarkovPassGen::_markov_table;
+std::size_t MarkovPassGen::_markov_table_size;
+cl_ulong * MarkovPassGen::_permutations;
+cl_uint MarkovPassGen::_min_length;
+cl_uint MarkovPassGen::_max_length;
+int MarkovPassGen::_num_instances;
+cl_uint * MarkovPassGen::_thresholds;
+cl_uint MarkovPassGen::_max_threshold;
+cl_ulong MarkovPassGen::_global_start_index;
+cl_ulong MarkovPassGen::_global_stop_index;
+pthread_mutex_t MarkovPassGen::_global_index_mutex;
+pthread_mutexattr_t MarkovPassGen::_global_index_mutex_attr;
 
-CLMarkovPassGen::CLMarkovPassGen(Options& options, bool cpu_mode)
+MarkovPassGen::MarkovPassGen(Options& options, bool cpu_mode)
 {
   _cpu_mode = cpu_mode; // TODO
   pthread_mutexattr_init(&_global_index_mutex_attr);
@@ -108,7 +108,7 @@ CLMarkovPassGen::CLMarkovPassGen(Options& options, bool cpu_mode)
 #endif
 }
 
-CLMarkovPassGen::CLMarkovPassGen(const CLMarkovPassGen& o) :
+MarkovPassGen::MarkovPassGen(const MarkovPassGen& o) :
     PassGen(o), _instance_id { o._num_instances++ },
     _min_reservation_size { o._min_reservation_size },
     _reservation_size { o._reservation_size }
@@ -116,7 +116,7 @@ CLMarkovPassGen::CLMarkovPassGen(const CLMarkovPassGen& o) :
   clock_gettime(CLOCK_MONOTONIC, &_speed_clock);
 }
 
-CLMarkovPassGen::~CLMarkovPassGen()
+MarkovPassGen::~MarkovPassGen()
 {
   if (_instance_id == FACTORY_INSTANCE_ID)
   {
@@ -131,7 +131,7 @@ CLMarkovPassGen::~CLMarkovPassGen()
   }
 }
 
-PassGen::KernelCode* CLMarkovPassGen::getKernelCode()
+PassGen::KernelCode* MarkovPassGen::getKernelCode()
 {
   if (_cpu_mode)
     return (nullptr);
@@ -139,16 +139,16 @@ PassGen::KernelCode* CLMarkovPassGen::getKernelCode()
     return (&_gpu_code);
 }
 
-bool CLMarkovPassGen::isFactory()
+bool MarkovPassGen::isFactory()
 {
   return (_instance_id == FACTORY_INSTANCE_ID);
 }
 
-PassGen* CLMarkovPassGen::createGenerator()
+PassGen* MarkovPassGen::createGenerator()
 {
   if (_instance_id == FACTORY_INSTANCE_ID)
   {
-    CLMarkovPassGen * new_instance = new CLMarkovPassGen { *this };
+    MarkovPassGen * new_instance = new MarkovPassGen { *this };
     _instances.push_back(new_instance);
     return (new_instance);
   }
@@ -156,12 +156,12 @@ PassGen* CLMarkovPassGen::createGenerator()
   return (nullptr);
 }
 
-uint8_t CLMarkovPassGen::maxPassLen()
+uint8_t MarkovPassGen::maxPassLen()
 {
   return (static_cast<uint8_t>(_max_length));
 }
 
-void CLMarkovPassGen::setKernelGWS(uint64_t gws)
+void MarkovPassGen::setKernelGWS(uint64_t gws)
 {
   _gws = gws;
   // Initialize reservation size
@@ -169,7 +169,7 @@ void CLMarkovPassGen::setKernelGWS(uint64_t gws)
   gpu_mode = true;
 }
 
-void CLMarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
+void MarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
                                  cl::Context* context)
 {
   _kernel = *kernel;
@@ -202,7 +202,7 @@ void CLMarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
   kernel->setArg(8, _length);
 }
 
-bool CLMarkovPassGen::nextKernelStep()
+bool MarkovPassGen::nextKernelStep()
 {
   if (_local_start_index < _local_stop_index)
   {
@@ -222,7 +222,7 @@ bool CLMarkovPassGen::nextKernelStep()
   return (false);
 }
 
-bool CLMarkovPassGen::reservePasswords()
+bool MarkovPassGen::reservePasswords()
 {
   struct timespec end;
   clock_gettime(CLOCK_MONOTONIC, &end);
@@ -267,7 +267,7 @@ bool CLMarkovPassGen::reservePasswords()
   return (true);
 }
 
-void CLMarkovPassGen::initMemory(std::string stat_file)
+void MarkovPassGen::initMemory(std::string stat_file)
 {
   // Calculate permutations for all lengths
   _permutations[0] = 0;
@@ -379,7 +379,7 @@ void CLMarkovPassGen::initMemory(std::string stat_file)
   delete[] markov_sort_table_buffer;
 }
 
-void CLMarkovPassGen::parseOptions(CLMarkovPassGen::Options & options)
+void MarkovPassGen::parseOptions(MarkovPassGen::Options & options)
 {
   stringstream ss;
   string substr;
@@ -430,7 +430,7 @@ void CLMarkovPassGen::parseOptions(CLMarkovPassGen::Options & options)
     throw invalid_argument("Invalid value for argument 'model'");
 }
 
-int CLMarkovPassGen::compareSortElements(const void *p1, const void *p2)
+int MarkovPassGen::compareSortElements(const void *p1, const void *p2)
 {
   const SortElement *e1 = static_cast<const SortElement *>(p1);
   const SortElement *e2 = static_cast<const SortElement *>(p2);
@@ -452,13 +452,13 @@ int CLMarkovPassGen::compareSortElements(const void *p1, const void *p2)
   return (result);
 }
 
-bool CLMarkovPassGen::isValidChar(uint8_t value)
+bool MarkovPassGen::isValidChar(uint8_t value)
 {
   return ((value >= 32) ? true : false);
 }
 
 
-uint64_t CLMarkovPassGen::numPermutations(unsigned length)
+uint64_t MarkovPassGen::numPermutations(unsigned length)
 {
   uint64_t result = 1;
   for (unsigned i = 0; i < length; i++)
@@ -469,7 +469,7 @@ uint64_t CLMarkovPassGen::numPermutations(unsigned length)
   return (result);
 }
 
-unsigned CLMarkovPassGen::findStatistics(std::ifstream & stat_file)
+unsigned MarkovPassGen::findStatistics(std::ifstream & stat_file)
 {
   // Skip header
   stat_file.ignore(numeric_limits<streamsize>::max(), ETX);
@@ -495,7 +495,7 @@ unsigned CLMarkovPassGen::findStatistics(std::ifstream & stat_file)
       "File doesn't contain statistics for specified Markov model" };
 }
 
-void CLMarkovPassGen::applyMask(CLMarkovPassGen::SortElement *table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE])
+void MarkovPassGen::applyMask(MarkovPassGen::SortElement *table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE])
 {
   for (unsigned p = 0; p < _max_length; p++)
   {
@@ -510,7 +510,7 @@ void CLMarkovPassGen::applyMask(CLMarkovPassGen::SortElement *table[MAX_PASS_LEN
   }
 }
 
-std::string CLMarkovPassGen::getPassword(uint64_t index)
+std::string MarkovPassGen::getPassword(uint64_t index)
 {
   uint8_t buffer[256];
 
@@ -543,7 +543,7 @@ std::string CLMarkovPassGen::getPassword(uint64_t index)
 
 }
 
-bool CLMarkovPassGen::getPassword(char* pass, uint32_t* len)
+bool MarkovPassGen::getPassword(char* pass, uint32_t* len)
 {
   bool state;
 

@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef CLMARKOVPASSGEN_H_
-#define CLMARKOVPASSGEN_H_
+#ifndef MARKOVPASSGEN_H_
+#define MARKOVPASSGEN_H_
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -40,7 +40,7 @@
 #include <cstdlib>         // atoi, qsort
 #include <cstdint>
 
-class CLMarkovPassGen : public PassGen
+class MarkovPassGen : public PassGen
 {
 public:
   struct Options
@@ -52,8 +52,8 @@ public:
     std::string mask;
   };
 
-  CLMarkovPassGen (Options & options, bool cpu_mode = false);
-  virtual ~CLMarkovPassGen ();
+  MarkovPassGen (Options & options, bool cpu_mode = false);
+  virtual ~MarkovPassGen ();
 
   virtual KernelCode * getKernelCode();
   virtual void setKernelGWS(uint64_t gws);
@@ -70,7 +70,7 @@ public:
   virtual bool getPassword(char* pass, uint32_t *len);
 private:
 
-  CLMarkovPassGen (const CLMarkovPassGen & o);
+  MarkovPassGen (const MarkovPassGen & o);
 
   struct SortElement
   {
@@ -132,7 +132,7 @@ private:
   cl::Buffer _permutations_buffer;
 
   int _instance_id = FACTORY_INSTANCE_ID;
-  std::vector<CLMarkovPassGen *> _instances;
+  std::vector<MarkovPassGen *> _instances;
 };
 
-#endif /* CLMARKOVPASSGEN_H_ */
+#endif /* MARKOVPASSGEN_H_ */
