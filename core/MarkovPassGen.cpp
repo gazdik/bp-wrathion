@@ -49,16 +49,17 @@ cl_uint MarkovPassGen::_max_length;
 int MarkovPassGen::_num_instances;
 cl_uint * MarkovPassGen::_thresholds;
 cl_uint MarkovPassGen::_max_threshold;
-cl_ulong MarkovPassGen::_global_start_index;
-cl_ulong MarkovPassGen::_global_stop_index;
-pthread_mutex_t MarkovPassGen::_global_index_mutex;
-pthread_mutexattr_t MarkovPassGen::_global_index_mutex_attr;
+cl_ulong MarkovPassGen::_shared_start_index;
+cl_ulong MarkovPassGen::_shared_stop_index;
+pthread_mutex_t MarkovPassGen::_shared_index_mutex;
+pthread_mutexattr_t MarkovPassGen::_shared_index_mutex_attr;
 
-MarkovPassGen::MarkovPassGen(Options& options, bool cpu_mode)
+MarkovPassGen::MarkovPassGen(Options& options, bool cpu_mode) :
+    _instance_id { FACTORY_INSTANCE_ID }
 {
   _cpu_mode = cpu_mode; // TODO
-  pthread_mutexattr_init(&_global_index_mutex_attr);
-  pthread_mutex_init(&_global_index_mutex, &_global_index_mutex_attr);
+  pthread_mutexattr_init(&_shared_index_mutex_attr);
+  pthread_mutex_init(&_shared_index_mutex, &_shared_index_mutex_attr);
   _mask = Mask { options.mask };
   _thresholds = new cl_uint[MAX_PASS_LENGTH];
   _permutations = new cl_ulong[MAX_PASS_LENGTH + 1];
@@ -71,8 +72,8 @@ MarkovPassGen::MarkovPassGen(Options& options, bool cpu_mode)
   // Initialize memory
   initMemory(options.stat_file);
 
-  _global_start_index = _permutations[_min_length - 1];
-  _global_stop_index = _permutations[_max_length];
+  _shared_start_index = _permutations[_min_length - 1];
+  _shared_stop_index = _permutations[_max_length];
 
   _num_instances = 0;
 
@@ -85,27 +86,11 @@ MarkovPassGen::MarkovPassGen(Options& options, bool cpu_mode)
   _reservation_size = _min_reservation_size;
 
 #ifndef NDEBUG
-  cout << "Minimal length: " << _min_length << "\n";
-  cout << "Maximal length: " << _max_length << "\n";
+  debugPrint();
 #endif
 
-  cout << "Thresholds: ";
-  for (int i = 0; i < _max_length; i++)
-  {
-    cout << _thresholds[i] << " ";
-  }
-  cout << "\n";
-
-#ifndef NDEBUG
-  cout << "Maximal threshold: " << _max_threshold << "\n";
-
-  cout << "Model: ";
-  if (_model == Model::CLASSIC)
-    cout << "classic";
-  else if (_model == Model::LAYERED)
-    cout << "layered";
-  cout << "\n";
-#endif
+  if (verbose)
+    verbosePrint();
 }
 
 MarkovPassGen::MarkovPassGen(const MarkovPassGen& o) :
@@ -120,8 +105,8 @@ MarkovPassGen::~MarkovPassGen()
 {
   if (_instance_id == FACTORY_INSTANCE_ID)
   {
-    pthread_mutex_destroy(&_global_index_mutex);
-    pthread_mutexattr_destroy(&_global_index_mutex_attr);
+    pthread_mutex_destroy(&_shared_index_mutex);
+    pthread_mutexattr_destroy(&_shared_index_mutex_attr);
 
     for (auto i : _instances)
       delete i;
@@ -175,8 +160,8 @@ void MarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
   _kernel = *kernel;
 
   // Invalid values to prevent kernel execution without reserved passwords
-  _local_start_index = 1;
-  _local_stop_index = 0;
+  _private_start_index = 1;
+  _private_stop_index = 0;
 
   _markov_table_buffer = cl::Buffer { *context, CL_MEM_READ_ONLY,
                                       _markov_table_size * sizeof(cl_uchar) };
@@ -197,24 +182,24 @@ void MarkovPassGen::initKernel(cl::Kernel* kernel, cl::CommandQueue* que,
   kernel->setArg(3, _thresholds_buffer);
   kernel->setArg(4, _permutations_buffer);
   kernel->setArg(5, _max_threshold);
-  kernel->setArg(6, _local_start_index);
-  kernel->setArg(7, _local_stop_index);
+  kernel->setArg(6, _private_start_index);
+  kernel->setArg(7, _private_stop_index);
   kernel->setArg(8, _length);
 }
 
 bool MarkovPassGen::nextKernelStep()
 {
-  if (_local_start_index < _local_stop_index)
+  if (_private_start_index < _private_stop_index)
   {
-    _local_start_index += _gws;
-    _kernel.setArg(6, _local_start_index);
+    _private_start_index += _gws;
+    _kernel.setArg(6, _private_start_index);
     return (true);
   }
 
   if (reservePasswords())
   {
-    _kernel.setArg(6, _local_start_index);
-    _kernel.setArg(7, _local_stop_index);
+    _kernel.setArg(6, _private_start_index);
+    _kernel.setArg(7, _private_stop_index);
     _kernel.setArg(8, _length);
     return (true);
   }
@@ -231,7 +216,6 @@ bool MarkovPassGen::reservePasswords()
   elapsed += (end.tv_nsec - _speed_clock.tv_nsec) / 1000000000.0;
 
   unsigned speed = _reservation_size / elapsed / _gws;
-//  cout << "Elapsed: " << elapsed << ", Speed: " << speed << endl;
   _speed_clock = end;
   unsigned new_res_size = speed * _gws;
 
@@ -245,23 +229,21 @@ bool MarkovPassGen::reservePasswords()
   if (_reservation_size < _min_reservation_size)
     _reservation_size = _min_reservation_size;
 
-//  cout << "Reservation size: " << _reservation_size << endl;
+  pthread_mutex_lock(&_shared_index_mutex);
+  _private_start_index = _shared_start_index;
+  _shared_start_index += _reservation_size;
+  pthread_mutex_unlock(&_shared_index_mutex);
 
-  pthread_mutex_lock(&_global_index_mutex);
-  _local_start_index = _global_start_index;
-  _global_start_index += _reservation_size;
-  pthread_mutex_unlock(&_global_index_mutex);
+  _private_stop_index = _private_start_index + _reservation_size;
 
-  _local_stop_index = _local_start_index + _reservation_size;
-
-  if (_local_start_index > _global_stop_index)
+  if (_private_start_index > _shared_stop_index)
     return (false);
 
-  if (_local_stop_index > _global_stop_index)
-    _local_stop_index = _global_stop_index;
+  if (_private_stop_index > _shared_stop_index)
+    _private_stop_index = _shared_stop_index;
 
   // Determine current length
-  while (_local_start_index >= _permutations[_length])
+  while (_private_start_index >= _permutations[_length])
     _length++;
 
   return (true);
@@ -495,6 +477,14 @@ unsigned MarkovPassGen::findStatistics(std::ifstream & stat_file)
       "File doesn't contain statistics for specified Markov model" };
 }
 
+void MarkovPassGen::saveState(std::string filename)
+{
+}
+
+void MarkovPassGen::loadState(std::string filename)
+{
+}
+
 void MarkovPassGen::applyMask(MarkovPassGen::SortElement *table[MAX_PASS_LENGTH][ASCII_CHARSET_SIZE])
 {
   for (unsigned p = 0; p < _max_length; p++)
@@ -514,7 +504,7 @@ std::string MarkovPassGen::getPassword(uint64_t index)
 {
   uint8_t buffer[256];
 
-  if (index >= _global_stop_index)
+  if (index >= _shared_stop_index)
     return (string {""});
 
   // Determine current length
@@ -547,11 +537,11 @@ bool MarkovPassGen::getPassword(char* pass, uint32_t* len)
 {
   bool state;
 
-  if (_local_start_index >= _local_stop_index)
+  if (_private_start_index >= _private_stop_index)
     if (!reservePasswords())
       return (false);
 
-  uint64_t index = _local_start_index++;
+  uint64_t index = _private_start_index++;
 
   // Determine current length
   while (index >= _permutations[_length])
@@ -576,4 +566,29 @@ bool MarkovPassGen::getPassword(char* pass, uint32_t* len)
   }
 
   return (true);
+}
+
+void MarkovPassGen::debugPrint()
+{
+  cout << "Maximal threshold: " << _max_threshold << "\n";
+
+  cout << "Model: ";
+  if (_model == Model::CLASSIC)
+    cout << "classic";
+  else if (_model == Model::LAYERED)
+    cout << "layered";
+  cout << "\n";
+
+  cout << "Minimal length: " << _min_length << "\n";
+  cout << "Maximal length: " << _max_length << "\n";
+}
+
+void MarkovPassGen::verbosePrint()
+{
+  cout << "Thresholds: ";
+  for (int i = 0; i < _max_length; i++)
+  {
+    cout << _thresholds[i] << " ";
+  }
+  cout << "\n";
 }

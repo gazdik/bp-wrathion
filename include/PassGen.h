@@ -31,9 +31,8 @@
 
 
 const unsigned MIN_PASS_LENGTH = 1;
-const unsigned MAX_PASS_LENGTH = 64;
+const unsigned MAX_PASS_LENGTH = 50;
 const unsigned ASCII_CHARSET_SIZE = 256;
-
 
 /**
  * ID of password generator saved in state file
@@ -82,7 +81,7 @@ public:
      */
     virtual KernelCode* getKernelCode();
     /**
-     * Set size of globalWorkSize 
+     * Set global-work-size
      * @param gws
      */
     virtual void setKernelGWS(uint64_t gws);
@@ -125,13 +124,13 @@ public:
     virtual void setStep(unsigned step);
 
     /**
-     * Save current state of generatro
+     * Save current state of the generator
      * @param filename filename where to save state
      */
     virtual void saveState(std::string filename);
     
     /**
-     * Load saved state into generator for resume cracking
+     * Load and restore saved state of the generator
      * @param filename load from this file
      */
     virtual void loadState(std::string filename);

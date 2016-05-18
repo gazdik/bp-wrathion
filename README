@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 - Wrathion - A GPU accelerated document password recovery tool -
-- Authors: Jan Schmied, Radek Hranicky, Vladimir Vesely        -
+- Authors: Jan Schmied, Radek Hranicky, Vladimir Vesely, Peter Gazdik -
 ----------------------------------------------------------------
 
 Wrathion was successfully compiled and tested under Ubuntu 14.04 LTS and Windows 8.1
@@ -158,7 +158,7 @@ SET PATH=c:\MinGW\bin;%PATH%
 
 Wrathion framework can be compiled using CMake (version 2.8 and above).
 On Windows (tested on MinGW MSYS).
- 
+
 cmake -G"MSYS Makefiles"
 make
 
@@ -175,9 +175,9 @@ deleting CMakeCache.txt and CMakeFiles in all Wrathion subdirectories.
 - IF you encounter any other errors, please check if ALL prerequisities are satisfied (section I.).
 
 All binary files are placed into 'bin' directory. OpenCL kernels are copyed from
-its directories inside mudules into 'bin/kernels' dorectory. This happens when 
-running cmake command. If you delete contents of 'bin/kernels' directory its 
-content is not restored by running make. Re-run cmake or restore contents 
+its directories inside mudules into 'bin/kernels' dorectory. This happens when
+running cmake command. If you delete contents of 'bin/kernels' directory its
+content is not restored by running make. Re-run cmake or restore contents
 manualyl.
 
 If youhave doxygen installed, you can generate a documentation of Wrathion by typing:
@@ -203,22 +203,43 @@ It supports the following arguments:
     -f - input file
     --modules -l - list loaded modules
     --devices -s - list platforms and devices
-    --cpu -c - prefer CPU over GPU
+    --cpu-cracker -c - prefer CPU cracker over GPU generator
     --map -d - devices to use <platform>:<device>[:<GWS>][,<platform>:<device>[:<GWS>],...]
     --chars -p - chars for creating passwords (default: abcdefghijklmnopqrstuvwxyz)
     -u (alternative of --chars) - file with unicode characters in hex form
     -m - maximum length of password (default: 10)
     --dict=file, -r - dictionary for dictinary attack
     --threads=NUMTHREADS, -t - number of threads for CPU Cracking
-    -v - verbose mode (displays additional information)
+    -v - verbose mode (more information is displayed)
+
+Markov attack
+    -S, --statistics        file with statistics
+    -T, --thresholds=glob[:pos]
+                            number of characters per position
+          - glob - global value for every position in password (default 95)
+          - pos - positional comma-separated values(overwrites global value)
+    -L, --length=min:max    length of password (default 1:50)
+    -M, --mask              mask
+    -X, --model             type of Markov model:
+          - classic - First-order Markov model (default)
+          - layered - Layered Markov model
+    -I - return password on given index (only for experiments)
+    -C, --cpu-generator - prefer CPU generator over GPU generator (works only
+                          with a Markov generator)
+
 
 Example:
-./wrathion -vd 0:0 -f testfiles/orig/aes256.zip (on Ubuntu 14.04)
+./wrathion -vd 0:0 -f testfiles/orig/aes256.zip -S stats/rockyou.wstat -L 1:10
+           -X layered -T 26 -M ?u?l?l?l?l?l?d?d?d?d (on Ubuntu 14.04)
 Or:
-wrathion.exe -vd 0:0 -f testfiles/orig/aes256.zip (on Windows 8.1)
+wrathion.exe -vd 0:0 -f testfiles/orig/aes256.zip -S stats/rockyou.wstat -L 1:10
+           -X layered -T 26 -M ?u?l?l?l?l?l?d?d?d?d  (on Windows 8.1)
+
+Detailed decription of Markov attack is in file MANUAL (only in Slovak)
 
 The directory /bin/testfiles contains examples of various encrypted documents.
 The directory /bin/uchars contains examples of unicode alphabet files.
+The directory /bin/stats contains various files with statistics for First-order and Layered Markov model.
 
 Unicode alphabet files contain the definition of characters in Unicode U+ hex notation (e.g. "U+0042"). The "#" symbol can be used for comments. Any character sequence beginning with "#" symbol and ending with an end of the line, is ignored.
 

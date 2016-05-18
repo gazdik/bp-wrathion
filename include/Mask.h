@@ -40,6 +40,9 @@ struct MaskRange
 };
 
 const unsigned NUM_METACHARS = 7;
+/**
+ * Array of lambda functions with character ranges of metacharacters
+ */
 static const MaskRange range_functions[NUM_METACHARS] =
 {
     {'l', [] (uint8_t ch) { return ch >= 'a' && ch <= 'z'; } },
@@ -51,25 +54,39 @@ static const MaskRange range_functions[NUM_METACHARS] =
     {'?', [] (uint8_t ch) { return ch == '?'; } }
 };
 
+/**
+ * MaskElement stores one metacharecter of mask in bit field
+ */
 class MaskElement
 {
 public:
   MaskElement();
+
+  /**
+   * Construct object from string metacharacter
+   * @param single_mask Single metacharacter of mask
+   */
   MaskElement(const std::string & single_mask);
 
   /**
    * Test if given character satisfy the mask
+   * @param character 8-bit character
+   * @return
    */
   bool Satisfy(uint8_t character) const;
 
   /**
-   * Returns number of characters that satisfy mask
+   * Get number of characters that satisfy mask (max threshold)
+   * @return
    */
   std::size_t Count() const;
 private:
   std::bitset<ASCII_CHARSET_SIZE> _charset_flags;
 };
 
+/**
+ * Mask parses string representation of mask and stores it in few bytes of memory
+ */
 class Mask
 {
 public:
@@ -79,7 +96,13 @@ public:
 
   const MaskElement & operator[](std::size_t idx);
 private:
+  /**
+   * Each element corresponds to one metacharecter in mask
+   */
   std::vector<MaskElement> _mask_elements;
+  /**
+   * Mask element for unspecified positions
+   */
   MaskElement _out_of_range;
 };
 

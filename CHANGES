@@ -1,0 +1,43 @@
+#################################################
+# Zmenené súbory
+#################################################
+
+main.cpp - pridané nové parametre, inštancovanie Markovského generátora namiesto
+brute-force generátora
+
+core/GPUCracker.cpp - upravené riadenie generovania a overovania hesla na
+GPU pre potreby nového generátora (pôvodný brute-force generátor nie je ďalej
+podporovaný, sú potrebné zmeny v jeho implementácii, nakoľko sa veľa vecí spojené
+s generovaním vykonávalo v samotnej triede GPUCracker). Odstránené chyby
+spojené s nastavovaním zlej veľkosti poľa obsahujúce heslá v GPU. Slovníkový
+generátor je stále podporovaný.
+
+core/PassGen.cpp, include/PassGen.h - v triede PassGen pridaná metóda
+'nextKernelStep' kvôli novému generátoru (ako vzorové rozhranie pre dotatočnú
+úpravu pôvodneho generátora pre zachovanie kompatibility - navrhujem však
+jeho kompletné prepracovanie na nový spôsob generovania, nakoľko sa ukázala
+pôvodná implementácia neefektívna, viď dokumentácia),
+pridaný copy konštruktor pre vytvorenie nového generátora, pravdepodobne
+opravené nejaké chyby.
+
+CMakeLists.txt, core/CMakeLists.txt - linkovanie dll knižnice pod Windows,
+ktorá obsahuje funkcie pre prevod hodnôt v 'network byte order' do
+hostiteľskej endianity.
+
+#################################################
+# Pridané súbory
+#################################################
+
+include/MarkovPassGen.h, core/MarkovPassGen.cpp - implementácia nového
+generátora podporujúca CPU aj GPU generovanie implementované v jedinej triede
+'MarkovPassGen'
+
+include/Mask.h, core/Mask.cpp - trieda pre podporu maskovania v Markovom
+generátora, parsuje a ukladá masku v bitovom poli. Pre definovanie novej
+masky sa využívajú lambda funkcie v hlavičkovom súbore, viď implememtáciu.
+
+core/kernels/markov_passgen.cl - zdrojový kód GPU generátora
+
+CHANGES - tento súbor
+
+MANUAL - súbor obsahujúci detailnejší popis použitia Markovského generátora

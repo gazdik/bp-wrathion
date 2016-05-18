@@ -38,7 +38,6 @@ __kernel void markov_passgen (__global uchar *passwords, uchar entry_size,
 
   if (global_index >= index_stop)
   {
-    // printf("oh no\n");
     return;
   }
 
@@ -66,7 +65,4 @@ __kernel void markov_passgen (__global uchar *passwords, uchar entry_size,
 
     password[p + PASS_PAYLOAD_OFFSET] = last_char;
   }
-
-  // Print password
-  // printf("%c%c%c\n", password[1], password[2], password[3]);
 }
