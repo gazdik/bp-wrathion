@@ -5,4 +5,8 @@ bin/*
 **/Makefile
 **/CMakeCache.txt
 
+.project
+.cproject
+.settings
+
 
